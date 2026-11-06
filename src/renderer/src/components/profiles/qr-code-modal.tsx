@@ -1,4 +1,4 @@
-import { Modal, ModalContent, ModalHeader, ModalBody } from '@heroui/react'
+import { Modal, ModalContent, ModalHeader, ModalBody } from '@renderer/components/ui'
 import { QRCodeSVG } from 'qrcode.react'
 import React from 'react'
 import { useTranslation } from 'react-i18next'

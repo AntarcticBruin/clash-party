@@ -1,4 +1,4 @@
-import { Button, Card, CardBody } from '@heroui/react'
+import { Button, Card, CardBody } from '@renderer/components/ui'
 import { MdEdit } from 'react-icons/md'
 import type { LocalObject } from '../../../../shared/local-config'
 import { getLocalNodeType } from '../../../../shared/local-node'

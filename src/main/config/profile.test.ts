@@ -189,6 +189,61 @@ const globalOverride = (id: string) =>
     global: true
   }) as const
 
+describe('importing complete profiles', () => {
+  it('preserves the selected mode and source identity when updating an existing subscription', async () => {
+    const original = await requireProfileItem('remote')
+    const sourceReference = { name: 'Original source', prefix: '[Original] ' }
+    await updateProfileItem({
+      ...original,
+      name: 'Renamed',
+      url: 'https://example.test/subscription',
+      importMode: 'profile',
+      sourceReference
+    })
+    expect(await getProfileItem('remote')).toMatchObject({
+      name: 'Renamed',
+      importMode: 'profile',
+      sourceReference
+    })
+    expect(readFileSync(join(testDir, 'profiles', 'remote.yaml'), 'utf8')).toBe(oldProfile)
+    expect(mocks.restartCore).not.toHaveBeenCalled()
+    const refreshed = await createProfile(await requireProfileItem('remote'))
+    expect(refreshed).toMatchObject({ importMode: 'profile', sourceReference })
+  })
+  it.each([undefined, 'default'])(
+    'activates the first import when current is %s',
+    async (current) => {
+      await updateProfileConfig(() => ({ current, items: [] }))
+      const imported = await addProfileItem({ type: 'local', name: 'Imported', file: newProfile })
+      expect((await getProfileConfig(true)).current).toBe(imported.id)
+      expect(mocks.restartCore).toHaveBeenCalledOnce()
+      expect(readFileSync(join(testDir, 'profiles', `${imported.id}.yaml`), 'utf8')).toBe(
+        newProfile
+      )
+    }
+  )
+
+  it('keeps the current profile when another complete profile is imported', async () => {
+    const imported = await addProfileItem({ type: 'local', name: 'Second', file: newProfile })
+    const config = await getProfileConfig(true)
+    expect(config.current).toBe('remote')
+    expect(config.items.some((item) => item.id === imported.id)).toBe(true)
+    expect(mocks.restartCore).not.toHaveBeenCalled()
+  })
+
+  it('preserves the imported profile and rolls back selection if first activation fails', async () => {
+    await updateProfileConfig(() => ({ current: 'default', items: [] }))
+    mocks.restartCore.mockRejectedValueOnce(new Error('Core activation failed'))
+    await expect(
+      addProfileItem({ type: 'local', name: 'Retryable', file: newProfile })
+    ).rejects.toThrow('Core activation failed')
+    const config = await getProfileConfig(true)
+    expect(config.current).toBe('default')
+    expect(config.items).toHaveLength(1)
+    expect(config.items[0].name).toBe('Retryable')
+  })
+})
+
 afterEach(() => {
   rmSync(testDir, { recursive: true, force: true })
 })

@@ -8,7 +8,7 @@ import {
 import { getHash } from '@renderer/utils/hash'
 import React, { Fragment, useEffect, useMemo, useState } from 'react'
 import useSWR from 'swr'
-import { Button, Chip, Input, Spinner } from '@heroui/react'
+import { Button, Chip, Input, Spinner } from '@renderer/components/ui'
 import { toast } from '@renderer/components/base/toast'
 import { IoMdRefresh } from 'react-icons/io'
 import { CgLoadbarDoc } from 'react-icons/cg'

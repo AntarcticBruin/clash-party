@@ -10,7 +10,7 @@ import {
   ModalContent,
   ModalHeader,
   Tooltip
-} from '@heroui/react'
+} from '@renderer/components/ui'
 import { IoMdMore, IoMdRefresh } from 'react-icons/io'
 import dayjs from '@renderer/utils/dayjs'
 import React, { Key, useMemo, useState } from 'react'
@@ -34,7 +34,6 @@ interface Props {
   isCurrent: boolean
   isSource?: boolean
   addProfileItem: (item: Partial<IProfileItem>) => Promise<void>
-  updateProfileItem: (item: IProfileItem) => Promise<void>
   removeProfileItem: (id: string) => Promise<void>
   mutateProfileConfig: () => void
   onPress?: () => Promise<void>
@@ -56,7 +55,6 @@ const ProfileItem: React.FC<Props> = (props) => {
     addProfileItem,
     removeProfileItem,
     mutateProfileConfig,
-    updateProfileItem,
     onPress,
     isCurrent
   } = props
@@ -289,13 +287,7 @@ const ProfileItem: React.FC<Props> = (props) => {
       {openQrCode && info.url && (
         <QrCodeModal title={info.name} url={info.url} onClose={() => setOpenQrCode(false)} />
       )}
-      {openInfoEditor && (
-        <EditInfoModal
-          item={info}
-          onClose={() => setOpenInfoEditor(false)}
-          updateProfileItem={updateProfileItem}
-        />
-      )}
+      {openInfoEditor && <EditInfoModal item={info} onClose={() => setOpenInfoEditor(false)} />}
       {showDeleteConfirm && (
         <BaseConfirmModal
           isOpen={showDeleteConfirm}
@@ -315,7 +307,7 @@ const ProfileItem: React.FC<Props> = (props) => {
         fullWidth
         isPressable={false}
         onContextMenu={handleContextMenu}
-        className={`${isCurrent ? 'bg-primary' : ''} ${onPress ? 'cursor-pointer' : 'cursor-default'} transition-colors duration-150`}
+        className={`profile-surface ${isCurrent ? 'is-active' : ''} ${onPress ? 'cursor-pointer' : 'cursor-default'} transition-colors duration-150`}
       >
         <div
           ref={setNodeRef}
@@ -351,7 +343,7 @@ const ProfileItem: React.FC<Props> = (props) => {
                     >
                       <IoMdRefresh
                         color="default"
-                        className={`${isCurrent ? 'text-primary-foreground' : 'text-foreground'} text-[24px] ${updating ? 'animate-spin' : ''}`}
+                        className={`${isCurrent ? 'text-primary' : 'text-foreground'} text-[24px] ${updating ? 'animate-spin' : ''}`}
                       />
                     </Button>
                   </Tooltip>
@@ -362,7 +354,7 @@ const ProfileItem: React.FC<Props> = (props) => {
                     <Button isIconOnly size="sm" variant="light" color="default">
                       <IoMdMore
                         color="default"
-                        className={`text-[24px] ${isCurrent ? 'text-primary-foreground' : 'text-foreground'}`}
+                        className={`text-[24px] ${isCurrent ? 'text-primary' : 'text-foreground'}`}
                       />
                     </Button>
                   </DropdownTrigger>

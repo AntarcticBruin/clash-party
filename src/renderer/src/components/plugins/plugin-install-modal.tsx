@@ -7,7 +7,7 @@ import {
   Button,
   Checkbox,
   Tooltip
-} from '@heroui/react'
+} from '@renderer/components/ui'
 import React, { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from '@renderer/components/base/toast'

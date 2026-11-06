@@ -10,7 +10,7 @@ import {
   SelectItem,
   Tab,
   Tabs
-} from '@heroui/react'
+} from '@renderer/components/ui'
 import React, { useState } from 'react'
 import { saveLocalRuleProvider } from '@renderer/utils/ipc'
 import { FaPlus } from 'react-icons/fa6'

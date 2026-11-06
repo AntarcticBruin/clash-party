@@ -7,7 +7,7 @@ import {
   Button,
   Input,
   Switch
-} from '@heroui/react'
+} from '@renderer/components/ui'
 import React, { useState } from 'react'
 import { mihomoHotReloadConfig } from '@renderer/utils/ipc'
 import { useTranslation } from 'react-i18next'

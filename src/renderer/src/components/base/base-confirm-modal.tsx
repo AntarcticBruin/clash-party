@@ -1,4 +1,11 @@
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button } from '@heroui/react'
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Button
+} from '@renderer/components/ui'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 

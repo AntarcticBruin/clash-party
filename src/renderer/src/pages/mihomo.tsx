@@ -14,7 +14,7 @@ import {
   useDisclosure,
   Spinner,
   Chip
-} from '@heroui/react'
+} from '@renderer/components/ui'
 import BasePage from '@renderer/components/base/base-page'
 import { toast } from '@renderer/components/base/toast'
 import { showError } from '@renderer/utils/error-display'

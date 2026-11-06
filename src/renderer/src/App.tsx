@@ -2,7 +2,7 @@ import { useTheme } from 'next-themes'
 import { Suspense, lazy, useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { NavigateFunction, useLocation, useNavigate, useRoutes } from 'react-router-dom'
 import OutboundModeSwitcher from '@renderer/components/sider/outbound-mode-switcher'
-import { Button, Divider } from '@heroui/react'
+import { Button, Divider } from '@renderer/components/ui'
 import { IoSettings } from 'react-icons/io5'
 import routes, { useDeferredRoutePreload } from '@renderer/routes'
 import UpdaterButton from '@renderer/components/updater/updater-button'
@@ -191,6 +191,7 @@ const App: React.FC = () => {
         }
       }}
       className={`w-full h-screen flex ${resizing ? 'cursor-ew-resize' : ''}`}
+      data-disable-animations={disableAnimations}
     >
       <div
         style={{ width: siderWidthValue }}
@@ -258,7 +259,7 @@ const App: React.FC = () => {
         ) : (
           <div
             style={{ width: `${siderWidthValue}px` }}
-            className="side h-full overflow-y-auto no-scrollbar"
+            className="side app-sidebar h-full overflow-y-auto no-scrollbar"
           >
             <div className="app-drag sticky top-0 z-40 backdrop-blur bg-transparent h-12.25">
               <div
@@ -274,7 +275,7 @@ const App: React.FC = () => {
                   className="app-nodrag"
                   isIconOnly
                   color={location.pathname.includes('/settings') ? 'primary' : 'default'}
-                  variant={location.pathname.includes('/settings') ? 'solid' : 'light'}
+                  variant={location.pathname.includes('/settings') ? 'flat' : 'light'}
                   onPress={() => {
                     navigate('/settings')
                   }}
@@ -311,7 +312,7 @@ const App: React.FC = () => {
       <Divider orientation="vertical" />
       <div
         style={{ width: `calc(100% - ${siderWidthValue + 1}px)` }}
-        className="main relative z-0 grow h-full overflow-y-auto"
+        className="main app-main relative z-0 grow h-full overflow-y-auto"
       >
         <Suspense fallback={<div className="h-full w-full bg-content1" />}>
           {page}

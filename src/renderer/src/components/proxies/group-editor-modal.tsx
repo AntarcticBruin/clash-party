@@ -12,7 +12,7 @@ import {
   Switch,
   Tab,
   Tabs
-} from '@heroui/react'
+} from '@renderer/components/ui'
 import React, { useEffect, useState } from 'react'
 import { createLocalProxyGroup, getLocalProxyGroup, saveLocalProxyGroup } from '@renderer/utils/ipc'
 import { useAppConfig } from '@renderer/hooks/use-app-config'

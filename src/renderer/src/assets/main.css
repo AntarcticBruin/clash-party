@@ -6,8 +6,8 @@
 
 @theme {
   --default-font-family:
-    system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
-    'Open Sans', 'Helvetica Neue', sans-serif;
+    system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei UI',
+    'Microsoft YaHei', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
 @font-face {
@@ -97,6 +97,8 @@
     -apple-system,
     BlinkMacSystemFont,
     'Segoe UI',
+    'Microsoft YaHei UI',
+    'Microsoft YaHei',
     Roboto,
     Oxygen,
     Ubuntu,
@@ -278,4 +280,248 @@
   .sider-resize-handle[data-animated='true'] {
     transition: none;
   }
+}
+
+/* Compact desktop surfaces. Theme tokens also keep custom and dark themes usable. */
+.app-sidebar {
+  background: color-mix(in srgb, hsl(var(--heroui-primary)) 3%, hsl(var(--heroui-background)));
+}
+
+.app-main {
+  background: color-mix(in srgb, hsl(var(--heroui-default-100)) 55%, hsl(var(--heroui-background)));
+}
+
+.page-header {
+  background: hsl(var(--heroui-background) / 0.96);
+}
+
+.page-header .title {
+  padding-left: 4px;
+}
+
+.sider-surface,
+.sider-switch-group,
+.proxy-group-card,
+.proxy-node-card,
+.outbound-mode-card {
+  border: 1px solid hsl(var(--heroui-default-200) / 0.8);
+  border-radius: 12px;
+  background-color: hsl(var(--heroui-content1));
+  box-shadow: 0 2px 6px hsl(var(--heroui-foreground) / 0.025);
+}
+
+.sider-surface {
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.sider-surface:hover {
+  background-color: color-mix(in srgb, hsl(var(--heroui-primary)) 4%, hsl(var(--heroui-content1)));
+  border-color: hsl(var(--heroui-primary) / 0.24);
+}
+
+.sider-surface.is-active {
+  background-color: color-mix(in srgb, hsl(var(--heroui-primary)) 10%, hsl(var(--heroui-content1)));
+  border-color: hsl(var(--heroui-primary) / 0.35);
+  box-shadow: none;
+}
+
+.sider-surface h3 {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.sider-switch-group {
+  overflow: hidden;
+}
+
+.sider-switch-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 45px;
+  transition: background-color 150ms ease;
+}
+
+.sider-switch-row + .sider-switch-row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 12px;
+  right: 12px;
+  height: 1px;
+  background-color: hsl(var(--heroui-default-200) / 0.7);
+  pointer-events: none;
+}
+
+.sider-switch-row:is(:hover, :has(:focus-visible), [data-active='true']) {
+  background-color: hsl(var(--heroui-primary) / 0.07);
+}
+
+.profile-card small {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: hsl(var(--heroui-foreground-600));
+}
+
+.proxy-node-card {
+  border-radius: 10px;
+  box-shadow: none;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease;
+}
+
+.proxy-node-card[data-hover='true'] {
+  border-color: hsl(var(--heroui-primary) / 0.35);
+  background-color: color-mix(in srgb, hsl(var(--heroui-primary)) 3%, hsl(var(--heroui-content1)));
+}
+
+.proxy-node-card[data-selected='true'] {
+  border-color: hsl(var(--heroui-primary) / 0.65);
+  background-color: color-mix(in srgb, hsl(var(--heroui-primary)) 10%, hsl(var(--heroui-content1)));
+}
+
+.proxy-node-card[data-fixed='true'] {
+  border-color: hsl(var(--heroui-secondary) / 0.6);
+  background-color: color-mix(
+    in srgb,
+    hsl(var(--heroui-secondary)) 10%,
+    hsl(var(--heroui-content1))
+  );
+}
+
+.proxy-protocol {
+  flex-shrink: 0;
+  border-radius: 4px;
+  background: hsl(var(--heroui-default-200) / 0.45);
+  padding: 0 4px;
+  font-size: 11px;
+  line-height: 16px;
+  color: hsl(var(--heroui-foreground-500));
+}
+
+.light .proxy-delay.text-success {
+  color: #17813d;
+}
+
+[data-disable-animations='true'] :is(.sider-surface, .proxy-node-card, .sider-switch-row) {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sider-surface,
+  .proxy-node-card,
+  .sider-switch-row {
+    transition: none;
+  }
+}
+
+/* One visual language for every app page, including portalled dialogs and menus. */
+:root {
+  --app-font-family:
+    'Segoe UI', 'Microsoft YaHei UI', 'Microsoft YaHei', system-ui, -apple-system,
+    BlinkMacSystemFont, sans-serif;
+  --app-border: hsl(var(--heroui-default-200) / 0.8);
+}
+
+html,
+body {
+  font-family: var(--app-font-family);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Keep rem-based layout dimensions unchanged; only the body text is compact. */
+html {
+  font-size: 16px;
+}
+
+.app-page {
+  font-size: 14px;
+}
+
+.app-card {
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  box-shadow: 0 2px 6px hsl(var(--heroui-foreground) / 0.025);
+}
+
+.profile-surface.is-active {
+  background-color: color-mix(in srgb, hsl(var(--heroui-primary)) 10%, hsl(var(--heroui-content1)));
+  border-color: hsl(var(--heroui-primary) / 0.4);
+}
+
+.app-control {
+  border-radius: 8px;
+  box-shadow: none;
+  background-color: hsl(var(--heroui-default-100) / 0.65);
+  border: 1px solid hsl(var(--heroui-default-200) / 0.7);
+}
+
+.app-control[data-hover='true'] {
+  background-color: hsl(var(--heroui-default-100));
+}
+
+.app-control:is([data-focus='true'], [data-focus-visible='true']) {
+  border-color: hsl(var(--heroui-primary) / 0.6);
+}
+
+.app-control[data-invalid='true'],
+[data-invalid='true'] > .app-control {
+  border-color: hsl(var(--heroui-danger) / 0.65);
+  background-color: hsl(var(--heroui-danger) / 0.05);
+}
+
+.app-button {
+  border-radius: 8px;
+  font-weight: 500;
+}
+.app-tabs {
+  box-shadow: none;
+}
+.setting-divider {
+  background-color: hsl(var(--heroui-default-200) / 0.6);
+}
+.setting-item > [role='switch'],
+.setting-item > label {
+  flex-shrink: 0;
+}
+.setting-item-label {
+  flex-shrink: 1;
+}
+.setting-card > [data-slot='heading'] {
+  font-size: 14px;
+}
+
+.app-dialog {
+  border: 1px solid var(--app-border);
+  border-radius: 16px;
+  font-family: var(--app-font-family);
+  box-shadow: 0 16px 48px rgb(0 0 0 / 0.16);
+}
+.app-dialog-header {
+  font-size: 16px;
+  font-weight: 600;
+}
+.app-dialog-footer {
+  border-top: 1px solid hsl(var(--heroui-default-200) / 0.6);
+  gap: 8px;
+}
+.app-popover {
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.1);
+}
+
+.app-page .content > .sticky {
+  background-color: hsl(var(--heroui-background) / 0.96);
+  backdrop-filter: blur(12px);
+}
+
+.app-page .content > .sticky > [role='separator'],
+.page-header > [role='separator'] {
+  background-color: hsl(var(--heroui-default-200) / 0.7);
 }

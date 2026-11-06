@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { toast } from '@renderer/components/base/toast'
-import { Button, Input, Select, SelectItem, Switch, Tooltip } from '@heroui/react'
+import { Button, Input, Select, SelectItem, Switch, Tooltip } from '@renderer/components/ui'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import { useProfileConfig } from '@renderer/hooks/use-profile-config'
 import debounce from '@renderer/utils/debounce'

@@ -1,4 +1,4 @@
-import { Button, Divider, Input, Switch } from '@heroui/react'
+import { Button, Divider, Input, Switch } from '@renderer/components/ui'
 import BasePage from '@renderer/components/base/base-page'
 import { showErrorSync } from '@renderer/utils/error-display'
 import SettingCard from '@renderer/components/base/base-setting-card'

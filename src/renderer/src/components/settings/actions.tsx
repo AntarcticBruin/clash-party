@@ -1,4 +1,4 @@
-import { Button, Tooltip } from '@heroui/react'
+import { Button, Tooltip } from '@renderer/components/ui'
 import { toast } from '@renderer/components/base/toast'
 import {
   checkUpdate,

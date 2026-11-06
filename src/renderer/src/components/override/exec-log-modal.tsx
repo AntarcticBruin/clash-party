@@ -6,7 +6,7 @@ import {
   ModalFooter,
   Button,
   Divider
-} from '@heroui/react'
+} from '@renderer/components/ui'
 import React, { useEffect, useState } from 'react'
 import { getOverride } from '@renderer/utils/ipc'
 import { useTranslation } from 'react-i18next'

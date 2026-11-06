@@ -1,4 +1,4 @@
-import { Button } from '@heroui/react'
+import { Button } from '@renderer/components/ui'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import { checkUpdate, downloadAndInstallUpdate } from '@renderer/utils/ipc'
 import React, { lazy, Suspense, useEffect, useRef, useState } from 'react'

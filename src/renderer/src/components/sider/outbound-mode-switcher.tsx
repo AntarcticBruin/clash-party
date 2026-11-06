@@ -1,4 +1,4 @@
-import { Tabs, Tab } from '@heroui/react'
+import { Tabs, Tab } from '@renderer/components/ui'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import { useControledMihomoConfig } from '@renderer/hooks/use-controled-mihomo-config'
 import { useGroups } from '@renderer/hooks/use-groups'
@@ -77,7 +77,9 @@ const OutboundModeSwitcher: React.FC<Props> = ({ iconOnly, expanded = false }: P
       color="primary"
       selectedKey={mode}
       classNames={{
-        tabList: 'bg-content1 shadow-medium outbound-mode-card'
+        tabList: 'bg-content1 shadow-none outbound-mode-card',
+        cursor: 'shadow-none rounded-lg',
+        tab: 'h-8 text-[13px]'
       }}
       onSelectionChange={(key: Key) => onChangeMode(key as OutboundMode)}
     >

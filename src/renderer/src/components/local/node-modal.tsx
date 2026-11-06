@@ -10,7 +10,7 @@ import {
   Spinner,
   Tab,
   Tabs
-} from '@heroui/react'
+} from '@renderer/components/ui'
 import SettingItem from '@renderer/components/base/base-setting-item'
 import { createLocalNodes, getLocalNode, saveLocalNode } from '@renderer/utils/ipc'
 import React, { useEffect, useMemo, useState } from 'react'

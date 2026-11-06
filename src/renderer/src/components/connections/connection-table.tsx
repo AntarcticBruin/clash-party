@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Button, Chip } from '@heroui/react'
+import { Button, Chip } from '@renderer/components/ui'
 import { calcTraffic } from '@renderer/utils/calc'
 import dayjs from '@renderer/utils/dayjs'
 import type { TFunction } from 'i18next'

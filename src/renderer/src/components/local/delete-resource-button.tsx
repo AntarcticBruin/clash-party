@@ -1,4 +1,4 @@
-import { Button } from '@heroui/react'
+import { Button } from '@renderer/components/ui'
 import { useState } from 'react'
 import { MdDeleteOutline } from 'react-icons/md'
 import BaseConfirmModal from '../base/base-confirm-modal'

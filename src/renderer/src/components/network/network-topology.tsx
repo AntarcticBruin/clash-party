@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react'
 import * as d3 from 'd3'
-import { Button } from '@heroui/react'
+import { Button } from '@renderer/components/ui'
 import {
   IoPauseOutline,
   IoPlayOutline,
@@ -597,7 +597,7 @@ const NetworkTopologyCard: React.FC = () => {
   }
 
   return (
-    <div className="rounded-xl border border-foreground/10 bg-content1 p-4 shadow-sm">
+    <div className="app-card bg-content1 p-4">
       {/* Header */}
       <div className="mb-3.5 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">

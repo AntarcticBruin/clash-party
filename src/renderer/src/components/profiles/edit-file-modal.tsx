@@ -1,4 +1,11 @@
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button } from '@heroui/react'
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Button
+} from '@renderer/components/ui'
 import React, { useEffect, useState } from 'react'
 import { getProfileStr, setProfileStr } from '@renderer/utils/ipc'
 import { useNavigate } from 'react-router-dom'

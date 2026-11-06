@@ -11,7 +11,7 @@ import {
   type AggregatedData,
   type DataUsageType
 } from '@renderer/utils/dataUsage'
-import { Button, Tab, Tabs } from '@heroui/react'
+import { Button, Tab, Tabs } from '@renderer/components/ui'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { calcTraffic } from '@renderer/utils/calc'
@@ -211,6 +211,7 @@ const TrafficPage: React.FC = () => {
         <div className="app-nodrag flex items-center gap-2">
           <Tabs
             size="sm"
+            classNames={{ tabList: 'gap-1', tab: 'px-2 h-7' }}
             selectedKey={timeRange}
             onSelectionChange={(k) => setTimeRange(k as TimeRange)}
           >
@@ -242,7 +243,7 @@ const TrafficPage: React.FC = () => {
           ].map(({ label, value }) => (
             <div
               key={label}
-              className="flex flex-col items-center rounded-xl border border-foreground/10 bg-content1 py-3 shadow-sm"
+              className="flex flex-col items-center app-card bg-content1 py-3 shadow-sm"
             >
               <span className="text-[11px] text-foreground/50 uppercase tracking-wide">
                 {label}
@@ -264,8 +265,8 @@ const TrafficPage: React.FC = () => {
         </Tabs>
 
         {/* Rankings + Chart */}
-        <div className="grid grid-cols-4 gap-3">
-          <div className="col-span-1 h-52 overflow-hidden rounded-xl border border-foreground/10 bg-content1 p-3 shadow-sm">
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-4">
+          <div className="col-span-1 h-52 overflow-hidden app-card bg-content1 p-3 shadow-sm">
             <TrafficRankings
               title={viewLabels[activeView]}
               data={rankings}
@@ -273,7 +274,7 @@ const TrafficPage: React.FC = () => {
               onSelect={handleSelectRow}
             />
           </div>
-          <div className="col-span-3 h-52 overflow-hidden rounded-xl border border-foreground/10 bg-content1 p-3 shadow-sm">
+          <div className="col-span-1 h-52 overflow-hidden app-card bg-content1 p-3 shadow-sm lg:col-span-3">
             <TrafficTrendChart data={trendData} bucketSizeMs={bucketSizeMs} />
           </div>
         </div>

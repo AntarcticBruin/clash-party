@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { toast } from '@renderer/components/base/toast'
-import { Button, useDisclosure } from '@heroui/react'
+import { Button, useDisclosure } from '@renderer/components/ui'
 import { exportLocalBackup, importLocalBackup, restartCore } from '@renderer/utils/ipc'
 import { useTranslation } from 'react-i18next'
 import SettingItem from '../base/base-setting-item'

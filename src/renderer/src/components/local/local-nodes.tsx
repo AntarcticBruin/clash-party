@@ -1,4 +1,4 @@
-import { Card, CardBody } from '@heroui/react'
+import { Card, CardBody } from '@renderer/components/ui'
 import { toast } from '@renderer/components/base/toast'
 import { getLocalConfig, removeLocalNode } from '@renderer/utils/ipc'
 import { useMemo, useState } from 'react'

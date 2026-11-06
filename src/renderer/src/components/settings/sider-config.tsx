@@ -1,13 +1,11 @@
 import SettingCard from '@renderer/components/base/base-setting-card'
 import SettingItem from '@renderer/components/base/base-setting-item'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
-import { Radio, RadioGroup } from '@heroui/react'
+import { Radio, RadioGroup } from '@renderer/components/ui'
 import { useTranslation } from 'react-i18next'
 import type { FC } from 'react'
 
 const titleMap: Record<string, string> = {
-  sysproxyCardStatus: 'sider.cards.systemProxy',
-  tunCardStatus: 'sider.cards.tun',
   profileCardStatus: 'sider.cards.profiles',
   proxyCardStatus: 'sider.cards.proxies',
   ruleCardStatus: 'sider.cards.rules',
@@ -34,8 +32,6 @@ const SiderConfig: FC = () => {
   const { appConfig, patchAppConfig } = useAppConfig()
 
   const cardStatus = {
-    sysproxyCardStatus: appConfig?.sysproxyCardStatus || 'col-span-1',
-    tunCardStatus: appConfig?.tunCardStatus || 'col-span-1',
     profileCardStatus: appConfig?.profileCardStatus || 'col-span-2',
     proxyCardStatus: appConfig?.proxyCardStatus || 'col-span-1',
     ruleCardStatus: appConfig?.ruleCardStatus || 'col-span-1',

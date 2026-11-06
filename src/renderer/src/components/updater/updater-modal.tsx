@@ -6,7 +6,7 @@ import {
   ModalContent,
   ModalFooter,
   ModalHeader
-} from '@heroui/react'
+} from '@renderer/components/ui'
 import { toast } from '@renderer/components/base/toast'
 import ReactMarkdown from 'react-markdown'
 import React, { useState, useEffect } from 'react'

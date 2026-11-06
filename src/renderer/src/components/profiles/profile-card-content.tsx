@@ -1,4 +1,4 @@
-import { Button, CardBody, CardFooter, Chip, Progress } from '@heroui/react'
+import { Button, CardBody, CardFooter, Chip, Progress } from '@renderer/components/ui'
 import { calcPercent, calcTraffic } from '@renderer/utils/calc'
 import dayjs from '@renderer/utils/dayjs'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
@@ -33,7 +33,7 @@ const ProfileCardContent: React.FC<Props> = (props) => {
         <div className="flex justify-between h-8">
           <h3
             title={info?.name}
-            className={`text-ellipsis whitespace-nowrap overflow-hidden text-md font-bold leading-8 ${isCurrent ? 'text-primary-foreground' : 'text-foreground'}`}
+            className={`text-ellipsis whitespace-nowrap overflow-hidden text-sm font-semibold leading-8 ${isCurrent ? 'text-primary' : 'text-foreground'}`}
           >
             {info?.name}
           </h3>
@@ -41,14 +41,14 @@ const ProfileCardContent: React.FC<Props> = (props) => {
         </div>
         {info.type === 'remote' && extra && (
           <div
-            className={`mt-2 flex justify-between ${isCurrent ? 'text-primary-foreground' : 'text-foreground'}`}
+            className={`mt-2 flex justify-between ${isCurrent ? 'text-primary' : 'text-foreground'}`}
           >
-            <small>{`${calcTraffic(usage)}/${calcTraffic(total)}`}</small>
+            <small>{`${calcTraffic(usage)} / ${calcTraffic(total)}`}</small>
             {profileDisplayDate === 'expire' ? (
               <Button
                 size="sm"
                 variant="light"
-                className={`h-5 p-1 m-0 ${isCurrent ? 'text-primary-foreground' : 'text-foreground'}`}
+                className={`h-5 p-1 m-0 ${isCurrent ? 'text-primary' : 'text-foreground'}`}
                 onPress={async () => {
                   await patchAppConfig({ profileDisplayDate: 'update' })
                 }}
@@ -61,7 +61,7 @@ const ProfileCardContent: React.FC<Props> = (props) => {
               <Button
                 size="sm"
                 variant="light"
-                className={`h-5 p-1 m-0 ${isCurrent ? 'text-primary-foreground' : 'text-foreground'}`}
+                className={`h-5 p-1 m-0 ${isCurrent ? 'text-primary' : 'text-foreground'}`}
                 onPress={async () => {
                   await patchAppConfig({ profileDisplayDate: 'expire' })
                 }}
@@ -75,14 +75,14 @@ const ProfileCardContent: React.FC<Props> = (props) => {
       <CardFooter className="pt-0">
         {typeChip && (
           <div
-            className={`w-full mt-2 flex justify-between items-center ${isCurrent ? 'text-primary-foreground' : 'text-foreground'}`}
+            className={`w-full mt-2 flex justify-between items-center ${isCurrent ? 'text-primary' : 'text-foreground'}`}
           >
             <div className="flex gap-1">
               {typeChip && (
                 <Chip
                   size="sm"
                   variant="bordered"
-                  className={`${isCurrent ? 'text-primary-foreground border-primary-foreground' : 'border-primary text-primary'}`}
+                  className={`${isCurrent ? 'text-primary border-primary/30' : 'border-primary text-primary'}`}
                 >
                   {typeChip}
                 </Chip>
@@ -96,7 +96,8 @@ const ProfileCardContent: React.FC<Props> = (props) => {
             className="w-full"
             aria-label={t('profiles.trafficUsage')}
             classNames={{
-              indicator: isCurrent ? 'bg-primary-foreground' : 'bg-foreground'
+              track: 'h-1.5 bg-default-200/70',
+              indicator: 'bg-primary'
             }}
             value={calcPercent(extra?.upload, extra?.download, extra?.total)}
           />

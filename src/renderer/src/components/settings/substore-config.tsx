@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import SettingCard from '@renderer/components/base/base-setting-card'
 import { toast } from '@renderer/components/base/toast'
 import SettingItem from '@renderer/components/base/base-setting-item'
-import { Button, Input, Switch } from '@heroui/react'
+import { Button, Input, Switch } from '@renderer/components/ui'
 import {
   startSubStoreFrontendServer,
   startSubStoreBackendServer,

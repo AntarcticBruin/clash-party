@@ -1,4 +1,4 @@
-import { Button, Card, CardBody, CardFooter } from '@heroui/react'
+import { Button, Card, CardBody, CardFooter } from '@renderer/components/ui'
 import { toast } from '@renderer/components/base/toast'
 import { calcTraffic } from '@renderer/utils/calc'
 import { mihomoVersion, restartCore } from '@renderer/utils/ipc'
@@ -84,7 +84,7 @@ const MihomoCoreCard: React.FC<Props> = (props) => {
           ref={setNodeRef}
           {...attributes}
           {...listeners}
-          className={`${match ? 'bg-primary' : 'hover:bg-primary/30'} ${disableAnimations ? '' : `motion-reduce:transition-transform-background ${isDragging ? 'scale-[0.95] tap-highlight-transparent' : ''}`}`}
+          className={`sider-surface ${match ? 'is-active' : ''} ${disableAnimations ? '' : `motion-reduce:transition-transform-background ${isDragging ? 'scale-[0.95] tap-highlight-transparent' : ''}`}`}
         >
           <CardBody>
             <div
@@ -95,7 +95,7 @@ const MihomoCoreCard: React.FC<Props> = (props) => {
             >
               <h3
                 title={version?.version}
-                className={`min-w-0 flex-1 truncate text-md font-bold leading-[32px] ${match ? 'text-primary-foreground' : 'text-foreground'}`}
+                className={`min-w-0 flex-1 truncate text-md font-bold leading-[32px] ${match ? 'text-primary' : 'text-foreground'}`}
               >
                 {version?.version ?? '-'}
               </h3>
@@ -121,14 +121,14 @@ const MihomoCoreCard: React.FC<Props> = (props) => {
                 }}
               >
                 <IoMdRefresh
-                  className={`${match ? 'text-primary-foreground' : 'text-foreground'} text-[24px] ${restarting ? 'animate-spin' : ''}`}
+                  className={`${match ? 'text-primary' : 'text-foreground'} text-[24px] ${restarting ? 'animate-spin' : ''}`}
                 />
               </Button>
             </div>
           </CardBody>
           <CardFooter className="pt-1">
             <div
-              className={`flex justify-between w-full text-md font-bold ${match ? 'text-primary-foreground' : 'text-foreground'}`}
+              className={`flex justify-between w-full text-md font-bold ${match ? 'text-primary' : 'text-foreground'}`}
             >
               <h4>{t('sider.cards.core')}</h4>
               <h4>{calcTraffic(mem)}</h4>
@@ -141,7 +141,7 @@ const MihomoCoreCard: React.FC<Props> = (props) => {
           ref={setNodeRef}
           {...attributes}
           {...listeners}
-          className={`${match ? 'bg-primary' : 'hover:bg-primary/30'} ${disableAnimations ? '' : `motion-reduce:transition-transform-background ${isDragging ? 'scale-[0.95] tap-highlight-transparent' : ''}`}`}
+          className={`sider-surface ${match ? 'is-active' : ''} ${disableAnimations ? '' : `motion-reduce:transition-transform-background ${isDragging ? 'scale-[0.95] tap-highlight-transparent' : ''}`}`}
         >
           <CardBody className="pb-1 pt-0 px-0">
             <div className="flex justify-between">
@@ -153,7 +153,7 @@ const MihomoCoreCard: React.FC<Props> = (props) => {
               >
                 <LuCpu
                   color="default"
-                  className={`${match ? 'text-primary-foreground' : 'text-foreground'} text-[24px] font-bold`}
+                  className={`${match ? 'text-primary' : 'text-foreground'} text-[24px] font-bold`}
                 />
               </Button>
               <Button
@@ -177,14 +177,14 @@ const MihomoCoreCard: React.FC<Props> = (props) => {
                 }}
               >
                 <IoMdRefresh
-                  className={`${match ? 'text-primary-foreground' : 'text-foreground'} text-[24px] ${restarting ? 'animate-spin' : ''}`}
+                  className={`${match ? 'text-primary' : 'text-foreground'} text-[24px] ${restarting ? 'animate-spin' : ''}`}
                 />
               </Button>
             </div>
           </CardBody>
           <CardFooter className="pt-1">
             <h3
-              className={`text-md font-bold text-ellipsis whitespace-nowrap overflow-hidden ${match ? 'text-primary-foreground' : 'text-foreground'}`}
+              className={`text-md font-bold text-ellipsis whitespace-nowrap overflow-hidden ${match ? 'text-primary' : 'text-foreground'}`}
             >
               {t('sider.cards.core')}
             </h3>

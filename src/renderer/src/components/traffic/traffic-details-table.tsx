@@ -1,6 +1,6 @@
 import { calcTraffic } from '@renderer/utils/calc'
 import type { AggregatedData, DataUsageType } from '@renderer/utils/dataUsage'
-import { Button, Input, Spinner } from '@heroui/react'
+import { Button, Input, Spinner } from '@renderer/components/ui'
 import { IoChevronDown, IoChevronForward, IoSearch } from 'react-icons/io5'
 import React, { useState, useMemo, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -71,7 +71,7 @@ const TrafficDetailsTable: React.FC<Props> = ({
   )
 
   return (
-    <div className="flex h-130 flex-col overflow-hidden rounded-xl border border-foreground/10 bg-content1 shadow-sm">
+    <div className="app-card flex h-130 flex-col overflow-hidden bg-content1">
       {/* Header */}
       <div className="flex items-center gap-3 border-b border-foreground/5 bg-content2/50 px-4 py-2.5">
         <span

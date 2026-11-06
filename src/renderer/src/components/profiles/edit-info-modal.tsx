@@ -18,9 +18,9 @@ import {
   Tabs,
   Tab,
   Tooltip
-} from '@heroui/react'
+} from '@renderer/components/ui'
 import { toast } from '@renderer/components/base/toast'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useOverrideConfig } from '@renderer/hooks/use-override-config'
 import { useProfileConfig } from '@renderer/hooks/use-profile-config'
 import { useSWRConfig } from 'swr'
@@ -48,21 +48,23 @@ import type { HeaderRow } from '../local/provider-fields'
 interface Props {
   item: IProfileItem
   mode?: 'edit' | 'import'
-  updateProfileItem?: (item: IProfileItem) => Promise<void>
-  addProfileItem?: (item: IProfileItem) => Promise<void>
   onImported?: (item: IProfileItem) => void
   onClose: () => void
 }
 const EditInfoModal: React.FC<Props> = (props) => {
-  const { item, mode = 'edit', updateProfileItem, addProfileItem, onImported, onClose } = props
-  const { mutateProfileConfig } = useProfileConfig()
+  const { item, mode = 'edit', onImported, onClose } = props
+  const { profileConfig, mutateProfileConfig } = useProfileConfig()
   const { mutate } = useSWRConfig()
   const [localOptions, setLocalOptions] = useState<LocalSubscriptionOptions>({
     mode: 'group'
   })
   const [localGroupNames, setLocalGroupNames] = useState<string[]>([])
   const [sourceGroupsLoaded, setSourceGroupsLoaded] = useState(false)
-  const [isSourceProfile, setIsSourceProfile] = useState(mode === 'import')
+  const [isSourceProfile, setIsSourceProfile] = useState(false)
+  const [profileMode, setProfileMode] = useState<NonNullable<IProfileItem['importMode']>>(
+    item.importMode || 'profile'
+  )
+  const initialSourceOptions = useRef<string | null>(null)
   const [providerHeaders, setProviderHeaders] = useState<HeaderRow[]>([])
   const [outbounds, setOutbounds] = useState<string[]>(['DIRECT'])
   const [optionsLoaded, setOptionsLoaded] = useState(false)
@@ -73,10 +75,11 @@ const EditInfoModal: React.FC<Props> = (props) => {
     ...item
   })
   const isImportMode = mode === 'import'
-  const asSource = isImportMode || isSourceProfile
-  const inputWidth = asSource
-    ? 'w-[65%] min-w-0'
-    : 'w-[400px] md:w-[400px] lg:w-[600px] xl:w-[800px]'
+  const asSource = profileMode !== 'profile'
+  const inputWidth =
+    asSource || isImportMode
+      ? 'w-[65%] min-w-0'
+      : 'w-[400px] md:w-[400px] lg:w-[600px] xl:w-[800px]'
   const { t } = useTranslation()
   useEffect(() => {
     const url = values.url?.trim()
@@ -148,10 +151,11 @@ const EditInfoModal: React.FC<Props> = (props) => {
             : []
         const providerEntry = providerEntries.find(
           ([name, value]) =>
+            name === item.sourceReference?.name ||
             name === item.name ||
             (value && typeof value === 'object' && value.url === item.url && Boolean(item.url))
         )
-        const prefix = `[${item.name}] `
+        const prefix = item.sourceReference?.prefix ?? `[${item.name}] `
         const localProxies = parse(state.draft.modules.proxies)
         const nodeSource = Array.isArray(localProxies)
           ? localProxies.filter(
@@ -187,7 +191,7 @@ const EditInfoModal: React.FC<Props> = (props) => {
               }
             : nodeSource.length
               ? {
-                  name: item.name,
+                  name: item.sourceReference?.name || item.name,
                   mode: 'extract',
                   prefix,
                   proxies: nodeSource.map((node) => ({
@@ -197,6 +201,9 @@ const EditInfoModal: React.FC<Props> = (props) => {
                 }
               : undefined)
         setIsSourceProfile(Boolean(source))
+        if (!item.importMode) {
+          setProfileMode(source ? (source.mode === 'extract' ? 'nodes' : 'group') : 'profile')
+        }
         const groups = parse(state.draft.modules['proxy-groups'])
         const names = Array.isArray(groups)
           ? groups
@@ -245,17 +252,20 @@ const EditInfoModal: React.FC<Props> = (props) => {
         )
         const header = (providerOptions.header || {}) as Record<string, string[]>
         const customHeaders: HeaderRow[] = []
-        for (const [name, values] of Object.entries(header)) {
+        for (const [name, headerValue] of Object.entries(header)) {
+          const values = Array.isArray(headerValue) ? headerValue : [String(headerValue)]
           const lower = name.toLowerCase()
           if (lower === 'user-agent' || lower === 'authorization') {
-            setValues((current) => ({
-              ...current,
-              [lower === 'user-agent' ? 'userAgent' : 'authToken']: values.join(' ')
-            }))
+            if (item.importMode !== 'profile') {
+              setValues((current) => ({
+                ...current,
+                [lower === 'user-agent' ? 'userAgent' : 'authToken']: values.join(' ')
+              }))
+            }
           } else customHeaders.push({ name, values: values.join('\n') })
         }
         delete providerOptions.header
-        if (typeof providerOptions['age-secret-key'] === 'string')
+        if (item.importMode !== 'profile' && typeof providerOptions['age-secret-key'] === 'string')
           setValues((current) => ({
             ...current,
             ageSecretKey: providerOptions['age-secret-key'] as string
@@ -277,7 +287,12 @@ const EditInfoModal: React.FC<Props> = (props) => {
     return () => {
       active = false
     }
-  }, [isImportMode, item.id, item.name, item.url])
+  }, [isImportMode, item.id, item.name, item.url, item.importMode, item.sourceReference])
+  useEffect(() => {
+    if (optionsLoaded && initialSourceOptions.current === null) {
+      initialSourceOptions.current = JSON.stringify({ profileMode, localOptions, providerHeaders })
+    }
+  }, [optionsLoaded, profileMode, localOptions, providerHeaders])
   useEffect(() => {
     if (!asSource) return
     let active = true
@@ -303,10 +318,22 @@ const EditInfoModal: React.FC<Props> = (props) => {
   const onSave = async (): Promise<void> => {
     setSaving(true)
     try {
+      const metadata = {
+        ...values,
+        importMode: profileMode,
+        ...(asSource
+          ? {
+              sourceReference: {
+                name: localOptions.providerName || item.sourceReference?.name || item.name,
+                prefix: localOptions.prefix ?? `[${item.name}] `
+              }
+            }
+          : {})
+      }
       const updatedItem = asSource
-        ? values
+        ? metadata
         : {
-            ...values,
+            ...metadata,
             override: values.override?.filter(
               (i) =>
                 overrideItems.find((t) => t.id === i) &&
@@ -338,25 +365,37 @@ const EditInfoModal: React.FC<Props> = (props) => {
           const imported = await importProfile(updatedItem, options)
           onImported?.(imported)
         } else {
-          await saveProfile(updatedItem, options)
+          const sourceChanged =
+            initialSourceOptions.current !==
+              JSON.stringify({ profileMode, localOptions, providerHeaders }) ||
+            (
+              ['url', 'userAgent', 'authToken', 'ageSecretKey', 'interval', 'autoUpdate'] as const
+            ).some((key) => values[key] !== item[key])
+          await saveProfile(updatedItem, sourceChanged ? options : undefined)
           await addProfileUpdater(updatedItem)
         }
         await mutate('getLocalConfig')
       } else if (isImportMode) {
-        if (!addProfileItem) throw new Error('Missing profile import handler')
-        await addProfileItem(updatedItem)
+        const imported = await importProfile(updatedItem)
+        onImported?.(imported)
       } else {
-        if (!updateProfileItem) throw new Error('Missing profile update handler')
-        await updateProfileItem(updatedItem)
+        await saveProfile(updatedItem)
         await addProfileUpdater(updatedItem)
         if (isSourceProfile) await mutate('getLocalConfig')
-        await mihomoHotReloadConfig()
+        if (
+          profileConfig?.current === item.id &&
+          (updatedItem.ageSecretKey !== item.ageSecretKey ||
+            JSON.stringify(updatedItem.override || []) !== JSON.stringify(item.override || []))
+        ) {
+          await mihomoHotReloadConfig()
+        }
       }
+      window.electron.ipcRenderer.send('updateTrayMenu')
       onClose()
     } catch (e) {
       toast.error(String(e))
     } finally {
-      if (asSource) mutateProfileConfig()
+      mutateProfileConfig()
       setSaving(false)
     }
   }
@@ -420,24 +459,27 @@ const EditInfoModal: React.FC<Props> = (props) => {
           onValueChange={(customHome) => setValues({ ...values, customHome })}
         />
       </SettingItem>
-      {(isImportMode || isSourceProfile) && (
+      {
         <SettingItem title={t('profiles.editInfo.source.title')}>
           <Tabs
             size="sm"
             aria-label={t('profiles.editInfo.source.title')}
-            selectedKey={localOptions.mode}
+            selectedKey={profileMode}
             onSelectionChange={(key) => {
+              setProfileMode(key as NonNullable<IProfileItem['importMode']>)
+              if (key === 'profile') return
               setLocalOptions({
                 ...localOptions,
                 mode: key as LocalSubscriptionOptions['mode']
               })
             }}
           >
+            <Tab key="profile" title={t('profiles.editInfo.source.profile')} />
             <Tab key="group" title={t('profiles.editInfo.source.group')} />
             <Tab key="nodes" title={t('profiles.editInfo.source.nodes')} />
           </Tabs>
         </SettingItem>
-      )}
+      }
       {asSource && (
         <>
           {localOptions.mode === 'group' && (
@@ -716,9 +758,10 @@ const EditInfoModal: React.FC<Props> = (props) => {
       size="5xl"
       classNames={{
         backdrop: 'top-[48px]',
-        base: asSource
-          ? 'w-[min(720px,calc(100vw-32px))] max-h-[min(680px,calc(100dvh-96px))]'
-          : 'w-[600px] md:w-[600px] lg:w-[800px] xl:w-[1024px]'
+        base:
+          asSource || isImportMode
+            ? 'w-[min(720px,calc(100vw-32px))] max-h-[min(680px,calc(100dvh-96px))]'
+            : 'w-[600px] md:w-[600px] lg:w-[800px] xl:w-[1024px]'
       }}
       hideCloseButton
       isOpen={true}

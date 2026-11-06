@@ -1,4 +1,4 @@
-import { Button, Divider, Select, SelectItem } from '@heroui/react'
+import { Button, Divider, Select, SelectItem } from '@renderer/components/ui'
 import SettingItem from '@renderer/components/base/base-setting-item'
 import React, { useMemo, useState } from 'react'
 import { MdClose } from 'react-icons/md'

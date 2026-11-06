@@ -1,4 +1,12 @@
-import { Button, Card, CardBody, CardFooter, Chip, Progress, Tooltip } from '@heroui/react'
+import {
+  Button,
+  Card,
+  CardBody,
+  CardFooter,
+  Chip,
+  Progress,
+  Tooltip
+} from '@renderer/components/ui'
 import { useProfileConfig } from '@renderer/hooks/use-profile-config'
 import { useLocation } from 'react-router-dom'
 import { calcTraffic, calcPercent } from '@renderer/utils/calc'
@@ -95,7 +103,7 @@ const ProfileCard: React.FC<Props> = (props) => {
           ref={setNodeRef}
           {...attributes}
           {...listeners}
-          className={`${match ? 'bg-primary' : 'hover:bg-primary/30'} ${disableAnimations ? '' : `motion-reduce:transition-transform-background ${isDragging ? 'scale-[0.95] tap-highlight-transparent' : ''}`}`}
+          className={`sider-surface ${match ? 'is-active' : ''} ${disableAnimations ? '' : `motion-reduce:transition-transform-background ${isDragging ? 'scale-[0.95] tap-highlight-transparent' : ''}`}`}
         >
           <CardBody className="pb-1">
             <div
@@ -106,7 +114,7 @@ const ProfileCard: React.FC<Props> = (props) => {
             >
               <h3
                 title={info?.name}
-                className={`text-ellipsis whitespace-nowrap overflow-hidden text-md font-bold leading-8 ${match ? 'text-primary-foreground' : 'text-foreground'}`}
+                className={`text-ellipsis whitespace-nowrap overflow-hidden text-md font-bold leading-8 ${match ? 'text-primary' : 'text-foreground'}`}
               >
                 {info?.name}
               </h3>
@@ -122,7 +130,7 @@ const ProfileCard: React.FC<Props> = (props) => {
                   }}
                 >
                   <CgLoadbarDoc
-                    className={`text-[24px] ${match ? 'text-primary-foreground' : 'text-foreground'}`}
+                    className={`text-[20px] ${match ? 'text-primary' : 'text-foreground'}`}
                   />
                 </Button>
                 {info.type === 'remote' && (
@@ -140,7 +148,7 @@ const ProfileCard: React.FC<Props> = (props) => {
                       }}
                     >
                       <IoMdRefresh
-                        className={`text-[24px] ${match ? 'text-primary-foreground' : 'text-foreground'} ${updating ? 'animate-spin' : ''}`}
+                        className={`text-[20px] ${match ? 'text-primary' : 'text-foreground'} ${updating ? 'animate-spin' : ''}`}
                       />
                     </Button>
                   </Tooltip>
@@ -149,14 +157,14 @@ const ProfileCard: React.FC<Props> = (props) => {
             </div>
             {info.type === 'remote' && extra && (
               <div
-                className={`mt-2 flex justify-between ${match ? 'text-primary-foreground' : 'text-foreground'} `}
+                className={`mt-2 flex justify-between ${match ? 'text-primary' : 'text-foreground'} `}
               >
-                <small>{`${calcTraffic(usage)}/${calcTraffic(total)}`}</small>
+                <small>{`${calcTraffic(usage)} / ${calcTraffic(total)}`}</small>
                 {profileDisplayDate === 'expire' ? (
                   <Button
                     size="sm"
                     variant="light"
-                    className={`h-5 p-1 m-0 ${match ? 'text-primary-foreground' : 'text-foreground'}`}
+                    className={`h-5 p-1 m-0 ${match ? 'text-primary' : 'text-foreground'}`}
                     onPress={async () => {
                       await patchAppConfig({ profileDisplayDate: 'update' })
                     }}
@@ -169,7 +177,7 @@ const ProfileCard: React.FC<Props> = (props) => {
                   <Button
                     size="sm"
                     variant="light"
-                    className={`h-5 p-1 m-0 ${match ? 'text-primary-foreground' : 'text-foreground'}`}
+                    className={`h-5 p-1 m-0 ${match ? 'text-primary' : 'text-foreground'}`}
                     onPress={async () => {
                       await patchAppConfig({ profileDisplayDate: 'expire' })
                     }}
@@ -183,12 +191,12 @@ const ProfileCard: React.FC<Props> = (props) => {
           <CardFooter className="pt-0">
             {info.type === 'remote' && !extra && (
               <div
-                className={`w-full mt-2 flex justify-between ${match ? 'text-primary-foreground' : 'text-foreground'}`}
+                className={`w-full mt-2 flex justify-between ${match ? 'text-primary' : 'text-foreground'}`}
               >
                 <Chip
                   size="sm"
                   variant="bordered"
-                  className={`${match ? 'text-primary-foreground border-primary-foreground' : 'border-primary text-primary'}`}
+                  className={`${match ? 'text-primary border-primary/30' : 'border-primary text-primary'}`}
                 >
                   {t('sider.cards.remote')}
                 </Chip>
@@ -197,12 +205,12 @@ const ProfileCard: React.FC<Props> = (props) => {
             )}
             {isLocalProfile(info) && (
               <div
-                className={`mt-2 flex justify-between ${match ? 'text-primary-foreground' : 'text-foreground'}`}
+                className={`mt-2 flex justify-between ${match ? 'text-primary' : 'text-foreground'}`}
               >
                 <Chip
                   size="sm"
                   variant="bordered"
-                  className={`${match ? 'text-primary-foreground border-primary-foreground' : 'border-primary text-primary'}`}
+                  className={`${match ? 'text-primary border-primary/30' : 'border-primary text-primary'}`}
                 >
                   {t('sider.cards.local')}
                 </Chip>
@@ -212,7 +220,7 @@ const ProfileCard: React.FC<Props> = (props) => {
               <Progress
                 className="w-full"
                 aria-label={t('sider.cards.trafficUsage')}
-                classNames={{ indicator: match ? 'bg-primary-foreground' : 'bg-foreground' }}
+                classNames={{ track: 'h-1.5 bg-default-200/70', indicator: 'bg-primary' }}
                 value={calcPercent(extra?.upload, extra?.download, extra?.total)}
               />
             )}
@@ -224,7 +232,7 @@ const ProfileCard: React.FC<Props> = (props) => {
           ref={setNodeRef}
           {...attributes}
           {...listeners}
-          className={`${match ? 'bg-primary' : 'hover:bg-primary/30'} ${disableAnimations ? '' : `motion-reduce:transition-transform-background ${isDragging ? 'scale-[0.95] tap-highlight-transparent' : ''}`}`}
+          className={`sider-surface ${match ? 'is-active' : ''} ${disableAnimations ? '' : `motion-reduce:transition-transform-background ${isDragging ? 'scale-[0.95] tap-highlight-transparent' : ''}`}`}
         >
           <CardBody className="pb-1 pt-0 px-0">
             <div className="flex justify-between">
@@ -236,14 +244,14 @@ const ProfileCard: React.FC<Props> = (props) => {
               >
                 <TiFolder
                   color="default"
-                  className={`${match ? 'text-primary-foreground' : 'text-foreground'} text-[24px]`}
+                  className={`${match ? 'text-primary' : 'text-foreground'} text-[20px]`}
                 />
               </Button>
             </div>
           </CardBody>
           <CardFooter className="pt-1">
             <h3
-              className={`text-md font-bold sider-card-title ${match ? 'text-primary-foreground' : 'text-foreground'}`}
+              className={`text-md font-bold sider-card-title ${match ? 'text-primary' : 'text-foreground'}`}
             >
               {t('sider.cards.profiles')}
             </h3>

@@ -1,4 +1,4 @@
-import { Button, Card, CardBody, CardFooter, Chip } from '@heroui/react'
+import { Button, Card, CardBody, CardFooter, Chip } from '@renderer/components/ui'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { LuGroup } from 'react-icons/lu'
@@ -61,7 +61,7 @@ const ProxyCard: React.FC<Props> = (props) => {
         ref={setNodeRef}
         {...attributes}
         {...listeners}
-        className={`${match ? 'bg-primary' : 'hover:bg-primary/30'} ${disableAnimations ? '' : `motion-reduce:transition-transform-background ${isDragging ? 'scale-[0.95] tap-highlight-transparent' : ''}`}`}
+        className={`sider-surface ${match ? 'is-active' : ''} ${disableAnimations ? '' : `motion-reduce:transition-transform-background ${isDragging ? 'scale-[0.95] tap-highlight-transparent' : ''}`}`}
       >
         <CardBody className="pb-1 pt-0 px-0">
           <div className="flex justify-between">
@@ -72,15 +72,15 @@ const ProxyCard: React.FC<Props> = (props) => {
               color="default"
             >
               <LuGroup
-                className={`${match ? 'text-primary-foreground' : 'text-foreground'} text-[24px] font-bold`}
+                className={`${match ? 'text-primary' : 'text-foreground'} text-[24px] font-bold`}
               />
             </Button>
             <Chip
               classNames={
                 match
                   ? {
-                      base: 'border-primary-foreground',
-                      content: 'text-primary-foreground'
+                      base: 'border-primary/30',
+                      content: 'text-primary'
                     }
                   : {
                       base: 'border-primary',
@@ -97,7 +97,7 @@ const ProxyCard: React.FC<Props> = (props) => {
         </CardBody>
         <CardFooter className="pt-1">
           <h3
-            className={`text-md font-bold sider-card-title ${match ? 'text-primary-foreground' : 'text-foreground'}`}
+            className={`text-md font-bold sider-card-title ${match ? 'text-primary' : 'text-foreground'}`}
           >
             {t('proxies.card.title')}
           </h3>

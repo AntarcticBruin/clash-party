@@ -1,4 +1,4 @@
-import { Button, Card, CardBody, Chip, Switch } from '@heroui/react'
+import { Button, Card, CardBody, Chip, Switch } from '@renderer/components/ui'
 import { MdEdit } from 'react-icons/md'
 import React, { useState, useEffect } from 'react'
 import { mihomoRulesDisable } from '@renderer/utils/ipc'

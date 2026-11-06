@@ -5,7 +5,7 @@ import {
   DropdownMenu,
   DropdownTrigger,
   Switch
-} from '@heroui/react'
+} from '@renderer/components/ui'
 import React from 'react'
 import { HiOutlineAdjustmentsHorizontal } from 'react-icons/hi2'
 import { MdEdit } from 'react-icons/md'

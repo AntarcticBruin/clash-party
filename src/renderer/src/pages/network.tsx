@@ -1,7 +1,7 @@
 import BasePage from '@renderer/components/base/base-page'
 import NetworkTopologyCard from '@renderer/components/network/network-topology'
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import { Button, Select, SelectItem, Chip, Tooltip, Input } from '@heroui/react'
+import { Button, Select, SelectItem, Chip, Tooltip, Input } from '@renderer/components/ui'
 import {
   DndContext,
   closestCorners,
@@ -503,7 +503,7 @@ const IPPage: React.FC = () => {
             <SortableContext items={cardOrder} strategy={verticalListSortingStrategy}>
               {/* 当前 IP 卡片 */}
               <SortableNetworkInfoCard id="ip" order={cardOrder.indexOf('ip')}>
-                <div className="rounded-xl border border-foreground/10 bg-content1 p-4 shadow-sm">
+                <div className="app-card bg-content1 p-4 shadow-sm">
                   {/* 卡片 Header */}
                   <div className="mb-3.5 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
@@ -674,7 +674,7 @@ const IPPage: React.FC = () => {
 
               {/* 网络延迟卡片 */}
               <SortableNetworkInfoCard id="latency" order={cardOrder.indexOf('latency')}>
-                <div className="rounded-xl border border-foreground/10 bg-content1 p-4 shadow-sm">
+                <div className="app-card bg-content1 p-4 shadow-sm">
                   <div className="mb-3.5 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
                       <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/15 text-primary">

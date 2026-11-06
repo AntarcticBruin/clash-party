@@ -20,7 +20,7 @@ import {
   verticalListSortingStrategy
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Button, Card, CardBody, Input, Tab, Tabs } from '@heroui/react'
+import { Button, Card, CardBody, Input, Tab, Tabs } from '@renderer/components/ui'
 import React, { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { MdAdd, MdCheck, MdChevronRight, MdClose, MdDragIndicator, MdSearch } from 'react-icons/md'

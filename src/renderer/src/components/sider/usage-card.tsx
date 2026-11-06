@@ -1,4 +1,4 @@
-import { Button, Card, CardBody, CardFooter, Progress, Tooltip } from '@heroui/react'
+import { Button, Card, CardBody, CardFooter, Progress, Tooltip } from '@renderer/components/ui'
 import BorderSwitch from '@renderer/components/base/border-switch'
 import { mihomoProxyProviders } from '@renderer/utils/ipc'
 import { useLocation } from 'react-router-dom'
@@ -97,7 +97,7 @@ const UsageCard: React.FC<Props> = (props) => {
           ref={setNodeRef}
           {...attributes}
           {...listeners}
-          className={`${match ? 'bg-primary' : 'hover:bg-primary/30'} ${disableAnimations ? '' : `motion-reduce:transition-transform-background ${isDragging ? 'scale-[0.95] tap-highlight-transparent' : ''}`}`}
+          className={`sider-surface ${match ? 'is-active' : ''} ${disableAnimations ? '' : `motion-reduce:transition-transform-background ${isDragging ? 'scale-[0.95] tap-highlight-transparent' : ''}`}`}
         >
           <CardBody className="pb-1 pt-0 px-0">
             <div className="flex justify-between">
@@ -108,12 +108,10 @@ const UsageCard: React.FC<Props> = (props) => {
                 color="default"
               >
                 <MdOutlineDataUsage
-                  className={`${match ? 'text-primary-foreground' : 'text-foreground'} text-[24px]`}
+                  className={`${match ? 'text-primary' : 'text-foreground'} text-[24px]`}
                 />
               </Button>
-              <div
-                className={`p-2 w-full ${match ? 'text-primary-foreground' : 'text-foreground'}`}
-              >
+              <div className={`p-2 w-full ${match ? 'text-primary' : 'text-foreground'}`}>
                 {providers.length === 0 ? (
                   <div className="text-xs text-foreground-400 leading-[32px]">—</div>
                 ) : (
@@ -167,7 +165,7 @@ const UsageCard: React.FC<Props> = (props) => {
           </CardBody>
           <CardFooter className="pt-1 justify-between gap-2">
             <h3
-              className={`text-md font-bold sider-card-title ${match ? 'text-primary-foreground' : 'text-foreground'}`}
+              className={`text-md font-bold sider-card-title ${match ? 'text-primary' : 'text-foreground'}`}
             >
               {t('sider.cards.traffic')}
             </h3>
@@ -180,7 +178,7 @@ const UsageCard: React.FC<Props> = (props) => {
           ref={setNodeRef}
           {...attributes}
           {...listeners}
-          className={`${match ? 'bg-primary' : 'hover:bg-primary/30'} ${disableAnimations ? '' : `motion-reduce:transition-transform-background ${isDragging ? 'scale-[0.95] tap-highlight-transparent' : ''}`}`}
+          className={`sider-surface ${match ? 'is-active' : ''} ${disableAnimations ? '' : `motion-reduce:transition-transform-background ${isDragging ? 'scale-[0.95] tap-highlight-transparent' : ''}`}`}
         >
           <CardBody className="pb-1 pt-0 px-0">
             <div className="flex justify-between items-start">
@@ -191,7 +189,7 @@ const UsageCard: React.FC<Props> = (props) => {
                 color="default"
               >
                 <MdOutlineDataUsage
-                  className={`${match ? 'text-primary-foreground' : 'text-foreground'} text-[24px] font-bold`}
+                  className={`${match ? 'text-primary' : 'text-foreground'} text-[24px] font-bold`}
                 />
               </Button>
               <div className="pt-2">{loggerSwitch}</div>
@@ -199,7 +197,7 @@ const UsageCard: React.FC<Props> = (props) => {
           </CardBody>
           <CardFooter className="pt-1">
             <h3
-              className={`text-md font-bold text-ellipsis whitespace-nowrap overflow-hidden ${match ? 'text-primary-foreground' : 'text-foreground'}`}
+              className={`text-md font-bold text-ellipsis whitespace-nowrap overflow-hidden ${match ? 'text-primary' : 'text-foreground'}`}
             >
               {t('sider.cards.traffic')}
             </h3>

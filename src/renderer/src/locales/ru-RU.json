@@ -881,6 +881,7 @@
   "profiles.localNodes": "Локальные узлы",
   "profiles.exportLocal": "Экспорт конфигурации",
   "profiles.editInfo.source.title": "Режим импорта",
+  "profiles.editInfo.source.profile": "Полный профиль",
   "profiles.editInfo.source.group": "Прокси-провайдер",
   "profiles.editInfo.source.nodes": "Отдельные узлы",
   "profiles.saveDraft": "Сохранить черновик",

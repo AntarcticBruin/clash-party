@@ -1,4 +1,4 @@
-import { Card, CardBody, Chip, Button, Select, SelectItem, Tooltip } from '@heroui/react'
+import { Card, CardBody, Chip, Button, Select, SelectItem, Tooltip } from '@renderer/components/ui'
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from '@renderer/components/base/toast'

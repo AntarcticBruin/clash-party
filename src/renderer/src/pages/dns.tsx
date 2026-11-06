@@ -1,4 +1,4 @@
-import { Button, Tab, Input, Switch, Tabs, Divider } from '@heroui/react'
+import { Button, Tab, Input, Switch, Tabs, Divider } from '@renderer/components/ui'
 import BasePage from '@renderer/components/base/base-page'
 import { showErrorSync } from '@renderer/utils/error-display'
 import { MdDeleteForever } from 'react-icons/md'

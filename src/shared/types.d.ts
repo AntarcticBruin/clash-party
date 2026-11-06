@@ -600,6 +600,8 @@ interface IProfileItem {
   id: string
   type: 'remote' | 'local'
   name: string
+  importMode?: 'profile' | 'group' | 'nodes'
+  sourceReference?: { name: string; prefix: string }
   url?: string // remote
   file?: string // local
   interval?: number | string

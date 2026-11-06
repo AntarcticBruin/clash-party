@@ -572,24 +572,38 @@ export async function removeLocalNode(name: string, expected: LocalObject): Prom
 
 export async function configureLocalSource(
   profileId: string,
-  options?: LocalSubscriptionOptions
-): Promise<void> {
+  options?: LocalSubscriptionOptions,
+  previousProfile?: IProfileItem
+): Promise<NonNullable<IProfileItem['sourceReference']>> {
   if (options && !['group', 'nodes'].includes(options.mode)) {
     throw new Error('未知订阅导入方式')
   }
-  await localWriteQueue.run(async () => {
-    const { getProfileItem } = await import('../config/profile')
+  return localWriteQueue.run(async () => {
+    const { getProfileItem, getProfile } = await import('../config/profile')
     const item = await getProfileItem(profileId)
     if (!item) throw new Error('找不到订阅')
     const state = await getLocalState()
+    const referencePrefix = previousProfile?.sourceReference?.prefix ?? item.sourceReference?.prefix
+    const unprefixedNames =
+      referencePrefix === ''
+        ? new Set(
+            (((await getProfile(profileId))?.proxies || []) as LocalObject[]).map(
+              (node) => node.name
+            )
+          )
+        : undefined
     const inferProviderSource = (draft: LocalDraft): LocalSource | undefined => {
       const providers = parse(draft.modules['proxy-providers'])
       if (isRecord(providers)) {
         const entry = Object.entries(providers).find(([name, value]) => {
           if (!isRecord(value)) return false
           return (
+            name === previousProfile?.sourceReference?.name ||
+            name === item.sourceReference?.name ||
+            name === previousProfile?.name ||
             name === options?.providerName?.trim() ||
             name === item.name ||
+            (Boolean(previousProfile?.url) && value.url === previousProfile?.url) ||
             (Boolean(item.url) && value.url === item.url)
           )
         })
@@ -611,20 +625,30 @@ export async function configureLocalSource(
           }
         }
       }
-      const prefix = `[${item.name}] `
+      const prefix =
+        previousProfile?.sourceReference?.prefix ??
+        item.sourceReference?.prefix ??
+        `[${previousProfile?.name || item.name}] `
       const nodes = parse(draft.modules.proxies)
       if (Array.isArray(nodes)) {
         const proxies = nodes
           .filter(
             (node): node is LocalObject =>
-              isRecord(node) && typeof node.name === 'string' && node.name.startsWith(prefix)
+              isRecord(node) &&
+              typeof node.name === 'string' &&
+              node.name.startsWith(prefix) &&
+              (!unprefixedNames || unprefixedNames.has(node.name))
           )
           .map((node) => ({ ...node, name: String(node.name).slice(prefix.length) }))
         if (proxies.length) {
           return {
             id: `profile-${profileId}`,
             profileId,
-            name: item.name,
+            name:
+              previousProfile?.sourceReference?.name ||
+              item.sourceReference?.name ||
+              previousProfile?.name ||
+              item.name,
             mode: 'extract',
             prefix,
             interval: 0,
@@ -641,6 +665,27 @@ export async function configureLocalSource(
       state.published.sources.find((source) => source.profileId === profileId) ||
       inferProviderSource(state.published)
     const previous = existing || published
+    const withoutInferredSource = (
+      draft: LocalDraft,
+      source: LocalSource
+    ): LocalDraft['modules'] => {
+      if (source.mode === 'extract') {
+        const names = new Set(source.proxies.map((node) => `${source.prefix}${node.name}`))
+        const nodes = parse(draft.modules.proxies)
+        return {
+          ...draft.modules,
+          proxies: stringify(
+            Array.isArray(nodes)
+              ? nodes.filter((node) => !isRecord(node) || !names.has(String(node.name)))
+              : []
+          )
+        }
+      }
+      const providers = parse(draft.modules['proxy-providers'])
+      if (!isRecord(providers)) return draft.modules
+      delete providers[source.name]
+      return { ...draft.modules, 'proxy-providers': stringify(providers) }
+    }
     const names = new Set([
       ...state.draft.sources
         .filter((source) => source.profileId !== profileId)
@@ -681,11 +726,7 @@ export async function configureLocalSource(
       ]
     }
     if (!state.draft.sources.some((candidate) => candidate.profileId === profileId) && previous) {
-      const providers = parse(sourceDraft.modules['proxy-providers'])
-      if (isRecord(providers)) {
-        delete providers[previous.name]
-        sourceDraft.modules = { ...sourceDraft.modules, 'proxy-providers': stringify(providers) }
-      }
+      sourceDraft.modules = withoutInferredSource(sourceDraft, previous)
     }
     const resolved = await resolveLocalDraft(sourceDraft)
     const nextSource = resolved.sources[0]
@@ -701,15 +742,7 @@ export async function configureLocalSource(
                 ...draft.sources.filter((candidate) => candidate.profileId !== profileId),
                 old
               ],
-              modules: {
-                ...draft.modules,
-                'proxy-providers': (() => {
-                  const providers = parse(draft.modules['proxy-providers'])
-                  if (!isRecord(providers)) return draft.modules['proxy-providers']
-                  delete providers[old.name]
-                  return stringify(providers)
-                })()
-              }
+              modules: withoutInferredSource(draft, old)
             }
           : draft
       const oldResolved = old
@@ -727,6 +760,7 @@ export async function configureLocalSource(
       published: await update(state.published)
     })
     if (result.errors.length) throw new Error(result.errors.join('\n'))
+    return { name: nextSource.name, prefix: nextSource.prefix }
   })
 }
 

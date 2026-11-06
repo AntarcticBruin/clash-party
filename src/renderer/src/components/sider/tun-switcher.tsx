@@ -1,15 +1,13 @@
-import { Button, Card, CardBody, CardFooter } from '@heroui/react'
 import { useControledMihomoConfig } from '@renderer/hooks/use-controled-mihomo-config'
 import BorderSwitch from '@renderer/components/base/border-switch'
 import { TbDeviceIpadHorizontalBolt } from 'react-icons/tb'
 import { useLocation } from 'react-router-dom'
 import { updateTrayIconImmediate } from '@renderer/utils/ipc'
-import { useSortable } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
 import React from 'react'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import { useTranslation } from 'react-i18next'
 import SiderItem from './sider-item'
+import FixedSwitchRow from './fixed-switch-row'
 
 interface Props {
   iconOnly?: boolean
@@ -22,22 +20,10 @@ const TunSwitcher: React.FC<Props> = (props) => {
   const location = useLocation()
   const match = location.pathname.includes('/tun') || false
   const { appConfig } = useAppConfig()
-  const { tunCardStatus = 'col-span-1', disableAnimations = false } = appConfig || {}
   const sysProxyEnabled = appConfig?.sysProxy?.enable ?? false
   const { controledMihomoConfig, patchControledMihomoConfig } = useControledMihomoConfig()
   const { tun } = controledMihomoConfig || {}
   const { enable } = tun || {}
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform: tf,
-    transition,
-    isDragging
-  } = useSortable({
-    id: 'tun'
-  })
-  const transform = tf ? { x: tf.x, y: tf.y, scaleX: 1, scaleY: 1 } : null
   const onChange = async (enable: boolean): Promise<void> => {
     updateTrayIconImmediate(sysProxyEnabled, enable)
     if (enable) {
@@ -107,7 +93,6 @@ const TunSwitcher: React.FC<Props> = (props) => {
   if (iconOnly) {
     return (
       <SiderItem
-        className={tunCardStatus}
         title={t('sider.cards.tun')}
         route="/tun"
         icon={<TbDeviceIpadHorizontalBolt className="text-[20px]" />}
@@ -124,50 +109,19 @@ const TunSwitcher: React.FC<Props> = (props) => {
   }
 
   return (
-    <div
-      style={{
-        position: 'relative',
-        transform: CSS.Transform.toString(transform),
-        transition,
-        zIndex: isDragging ? 'calc(infinity)' : undefined
-      }}
-      className={`${tunCardStatus} tun-card`}
+    <FixedSwitchRow
+      title={t('sider.cards.tun')}
+      route="/tun"
+      icon={<TbDeviceIpadHorizontalBolt />}
+      active={match}
+      className="tun-card"
     >
-      <Card
-        fullWidth
-        ref={setNodeRef}
-        {...attributes}
-        {...listeners}
-        className={`${match ? 'bg-primary' : 'hover:bg-primary/30'} ${disableAnimations ? '' : `motion-reduce:transition-transform-background ${isDragging ? 'scale-[0.95] tap-highlight-transparent' : ''}`}`}
-      >
-        <CardBody className="pb-1 pt-0 px-0">
-          <div className="flex justify-between">
-            <Button
-              isIconOnly
-              className="bg-transparent pointer-events-none"
-              variant="flat"
-              color="default"
-            >
-              <TbDeviceIpadHorizontalBolt
-                className={`${match ? 'text-primary-foreground' : 'text-foreground'} text-[24px] font-bold`}
-              />
-            </Button>
-            <BorderSwitch
-              isShowBorder={match && enable}
-              isSelected={enable ?? false}
-              onValueChange={onChange}
-            />
-          </div>
-        </CardBody>
-        <CardFooter className="pt-1">
-          <h3
-            className={`text-md font-bold sider-card-title ${match ? 'text-primary-foreground' : 'text-foreground'}`}
-          >
-            {t('sider.cards.tun')}
-          </h3>
-        </CardFooter>
-      </Card>
-    </div>
+      <BorderSwitch
+        aria-label={t('sider.cards.tun')}
+        isSelected={enable ?? false}
+        onValueChange={onChange}
+      />
+    </FixedSwitchRow>
   )
 }
 

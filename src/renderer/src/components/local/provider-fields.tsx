@@ -1,4 +1,4 @@
-import { Button, Input, Select, SelectItem, Textarea } from '@heroui/react'
+import { Button, Input, Select, SelectItem, Textarea } from '@renderer/components/ui'
 import { MdAdd, MdClose } from 'react-icons/md'
 import type { LocalObject } from '../../../../shared/local-config'
 import type { LocalNodeField } from '../../../../shared/local-node'

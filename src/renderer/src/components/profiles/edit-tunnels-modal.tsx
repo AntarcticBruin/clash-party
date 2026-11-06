@@ -9,7 +9,7 @@ import {
   ModalFooter,
   ModalHeader,
   Spinner
-} from '@heroui/react'
+} from '@renderer/components/ui'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from '@renderer/components/base/toast'
 import { getProfileStr, setProfileStr } from '@renderer/utils/ipc'

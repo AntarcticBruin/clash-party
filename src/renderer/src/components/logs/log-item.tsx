@@ -1,4 +1,4 @@
-import { Card, CardBody, CardHeader } from '@heroui/react'
+import { Card, CardBody, CardHeader } from '@renderer/components/ui'
 import React from 'react'
 
 const colorMap = {
@@ -13,12 +13,14 @@ const LogItem: React.FC<IMihomoLogInfo & { index: number }> = (props) => {
     <div className={`px-2 pb-2 ${index === 0 ? 'pt-2' : ''}`}>
       <Card>
         <CardHeader className="pb-0 pt-1">
-          <div className={`mr-2 text-lg font-bold text-${colorMap[type]}`}>
+          <div className={`mr-2 text-xs font-semibold text-${colorMap[type]}`}>
             {type.toUpperCase()}
           </div>
           <small className="text-foreground-500">{time}</small>
         </CardHeader>
-        <CardBody className="select-text pt-0 text-sm">{payload}</CardBody>
+        <CardBody className="select-text pt-1 text-[13px] leading-5 break-words">
+          {payload}
+        </CardBody>
       </Card>
     </div>
   )

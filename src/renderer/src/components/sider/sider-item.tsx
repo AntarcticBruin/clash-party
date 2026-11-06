@@ -1,4 +1,4 @@
-import { Button } from '@heroui/react'
+import { Button } from '@renderer/components/ui'
 import type { ReactNode } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
@@ -26,7 +26,7 @@ export default function SiderItem({
   return (
     <div
       data-expanded={expanded}
-      className={`${className} sider-item mx-2 flex h-8 shrink-0 items-center rounded-lg ${active ? 'bg-primary text-primary-foreground' : 'hover:bg-primary/10'}`}
+      className={`${className} sider-item mx-2 flex h-8 shrink-0 items-center rounded-lg ${active ? 'bg-primary/10 text-primary ring-1 ring-inset ring-primary/25' : 'hover:bg-primary/10'}`}
     >
       <Button
         size="sm"
@@ -34,7 +34,7 @@ export default function SiderItem({
         aria-current={active ? 'page' : undefined}
         onPress={() => navigate(route)}
         variant="light"
-        className={`h-8 min-w-0 flex-1 justify-start gap-0 p-0 bg-transparent data-[hover=true]:bg-transparent ${active ? 'text-primary-foreground' : ''}`}
+        className={`h-8 min-w-0 flex-1 justify-start gap-0 p-0 bg-transparent data-[hover=true]:bg-transparent ${active ? 'text-primary' : ''}`}
       >
         <span
           style={{ width: 'var(--sider-icon-width, 44px)' }}

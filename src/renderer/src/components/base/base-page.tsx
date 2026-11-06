@@ -1,4 +1,4 @@
-import { Button, Divider } from '@heroui/react'
+import { Button, Divider } from '@renderer/components/ui'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import { platform } from '@renderer/utils/init'
 import { isAlwaysOnTop, setAlwaysOnTop } from '@renderer/utils/ipc'
@@ -44,10 +44,10 @@ const BasePage = forwardRef<HTMLDivElement, Props>((props, ref) => {
   })
 
   return (
-    <div ref={contentRef} className="w-full h-full">
-      <div className="sticky top-0 z-40 h-12.25 w-full bg-background">
+    <div ref={contentRef} className="app-page w-full h-full">
+      <div className="page-header sticky top-0 z-40 h-12.25 w-full bg-background">
         <div className="app-drag p-2 flex justify-between h-12">
-          <div className="title min-w-0 h-full truncate whitespace-nowrap text-lg leading-8">
+          <div className="title min-w-0 h-full truncate whitespace-nowrap text-base font-semibold leading-8">
             {props.title}
           </div>
           <div style={{ marginRight: overlayWidth }} className="header flex gap-1 h-full">
@@ -76,7 +76,9 @@ const BasePage = forwardRef<HTMLDivElement, Props>((props, ref) => {
 
         <Divider />
       </div>
-      <div className="content h-[calc(100vh-49px)] overflow-y-auto custom-scrollbar">
+      <div
+        className={`content h-[calc(100vh-49px)] overflow-y-auto custom-scrollbar ${props.contentClassName ?? ''}`}
+      >
         {props.children}
       </div>
     </div>

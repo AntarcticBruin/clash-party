@@ -898,6 +898,7 @@
   "profiles.localNodes": "Local Nodes",
   "profiles.exportLocal": "Export Config",
   "profiles.editInfo.source.title": "Import mode",
+  "profiles.editInfo.source.profile": "Complete profile",
   "profiles.editInfo.source.group": "Proxy Provider",
   "profiles.editInfo.source.nodes": "Individual Nodes",
   "profiles.saveDraft": "Save Draft",

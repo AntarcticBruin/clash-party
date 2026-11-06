@@ -9,7 +9,7 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem
-} from '@heroui/react'
+} from '@renderer/components/ui'
 import React from 'react'
 import { calcTraffic } from '@renderer/utils/calc'
 import dayjs from '@renderer/utils/dayjs'

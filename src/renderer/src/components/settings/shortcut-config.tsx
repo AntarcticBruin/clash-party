@@ -1,4 +1,4 @@
-import { Button, Input } from '@heroui/react'
+import { Button, Input } from '@renderer/components/ui'
 import { toast } from '@renderer/components/base/toast'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import React, { KeyboardEvent, useState } from 'react'

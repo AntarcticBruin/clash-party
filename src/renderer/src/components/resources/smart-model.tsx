@@ -1,4 +1,4 @@
-import { Button, Chip, Select, SelectItem } from '@heroui/react'
+import { Button, Chip, Select, SelectItem } from '@renderer/components/ui'
 import { toast } from '@renderer/components/base/toast'
 import SettingCard from '@renderer/components/base/base-setting-card'
 import SettingItem from '@renderer/components/base/base-setting-item'

@@ -10,7 +10,7 @@ import {
   Tab,
   Tabs,
   Tooltip
-} from '@heroui/react'
+} from '@renderer/components/ui'
 import { BiCopy, BiSolidFileImport } from 'react-icons/bi'
 import useSWR from 'swr'
 import {

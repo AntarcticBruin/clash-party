@@ -1,4 +1,11 @@
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button } from '@heroui/react'
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Button
+} from '@renderer/components/ui'
 import React, { useEffect, useState, useMemo } from 'react'
 import { getFileStr, setFileStr, convertMrsRuleset, getRuntimeConfig } from '@renderer/utils/ipc'
 import { dump, load } from 'js-yaml'

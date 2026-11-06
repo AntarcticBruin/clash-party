@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from '@renderer/components/base/toast'
-import { Button, Input, Select, SelectItem, Switch } from '@heroui/react'
+import { Button, Input, Select, SelectItem, Switch } from '@renderer/components/ui'
 import { listWebdavBackups, webdavBackup, reinitWebdavBackupScheduler } from '@renderer/utils/ipc'
 import debounce from '@renderer/utils/debounce'
 import { useAppConfig } from '@renderer/hooks/use-app-config'

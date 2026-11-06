@@ -1,4 +1,4 @@
-import { Button, Input, Switch, Tab, Tabs } from '@heroui/react'
+import { Button, Input, Switch, Tab, Tabs } from '@renderer/components/ui'
 import { toast } from '@renderer/components/base/toast'
 import SettingCard from '@renderer/components/base/base-setting-card'
 import SettingItem from '@renderer/components/base/base-setting-item'

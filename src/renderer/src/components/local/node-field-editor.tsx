@@ -1,4 +1,4 @@
-import { Button, Input, Select, SelectItem, Switch, Textarea } from '@heroui/react'
+import { Button, Input, Select, SelectItem, Switch, Textarea } from '@renderer/components/ui'
 import { useState } from 'react'
 import { IoMdEye, IoMdEyeOff } from 'react-icons/io'
 import { MdAdd, MdClose } from 'react-icons/md'

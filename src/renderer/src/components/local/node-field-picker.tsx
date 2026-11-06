@@ -7,7 +7,7 @@ import {
   ModalContent,
   ModalFooter,
   ModalHeader
-} from '@heroui/react'
+} from '@renderer/components/ui'
 import { useMemo, useState } from 'react'
 import { MdSearch } from 'react-icons/md'
 import type { LocalNodeFieldEntry } from '../../../../shared/local-node'

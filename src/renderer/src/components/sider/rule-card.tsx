@@ -1,4 +1,4 @@
-import { Button, Card, CardBody, CardFooter, Chip } from '@heroui/react'
+import { Button, Card, CardBody, CardFooter, Chip } from '@renderer/components/ui'
 import { MdOutlineAltRoute } from 'react-icons/md'
 import { useLocation } from 'react-router-dom'
 import { useSortable } from '@dnd-kit/sortable'
@@ -61,7 +61,7 @@ const RuleCard: React.FC<Props> = (props) => {
         ref={setNodeRef}
         {...attributes}
         {...listeners}
-        className={`${match ? 'bg-primary' : 'hover:bg-primary/30'} ${disableAnimations ? '' : `motion-reduce:transition-transform-background ${isDragging ? 'scale-[0.95] tap-highlight-transparent' : ''}`}`}
+        className={`sider-surface ${match ? 'is-active' : ''} ${disableAnimations ? '' : `motion-reduce:transition-transform-background ${isDragging ? 'scale-[0.95] tap-highlight-transparent' : ''}`}`}
       >
         <CardBody className="pb-1 pt-0 px-0">
           <div className="flex justify-between">
@@ -73,15 +73,15 @@ const RuleCard: React.FC<Props> = (props) => {
             >
               <MdOutlineAltRoute
                 color="default"
-                className={`${match ? 'text-primary-foreground' : 'text-foreground'} text-[24px]`}
+                className={`${match ? 'text-primary' : 'text-foreground'} text-[24px]`}
               />
             </Button>
             <Chip
               classNames={
                 match
                   ? {
-                      base: 'border-primary-foreground',
-                      content: 'text-primary-foreground'
+                      base: 'border-primary/30',
+                      content: 'text-primary'
                     }
                   : {
                       base: 'border-primary',
@@ -98,7 +98,7 @@ const RuleCard: React.FC<Props> = (props) => {
         </CardBody>
         <CardFooter className="pt-1">
           <h3
-            className={`text-md font-bold text-ellipsis whitespace-nowrap overflow-hidden ${match ? 'text-primary-foreground' : 'text-foreground'}`}
+            className={`text-md font-bold text-ellipsis whitespace-nowrap overflow-hidden ${match ? 'text-primary' : 'text-foreground'}`}
           >
             {t('sider.cards.rules')}
           </h3>

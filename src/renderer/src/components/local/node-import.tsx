@@ -1,4 +1,4 @@
-import { Button, Chip, Textarea } from '@heroui/react'
+import { Button, Chip, Textarea } from '@renderer/components/ui'
 import { toast } from '@renderer/components/base/toast'
 import { createLocalNodes } from '@renderer/utils/ipc'
 import { useState } from 'react'

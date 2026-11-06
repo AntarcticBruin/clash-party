@@ -1,4 +1,4 @@
-import { Button } from '@heroui/react'
+import { Button } from '@renderer/components/ui'
 import { ReactNode } from 'react'
 import { ErrorBoundary, FallbackProps } from 'react-error-boundary'
 import { useTranslation } from 'react-i18next'

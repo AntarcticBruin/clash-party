@@ -8,7 +8,7 @@ import {
   DropdownMenu,
   DropdownTrigger,
   Input
-} from '@heroui/react'
+} from '@renderer/components/ui'
 import BasePage from '@renderer/components/base/base-page'
 import { toast } from '@renderer/components/base/toast'
 import ProfileItem from '@renderer/components/profiles/profile-item'
@@ -55,7 +55,6 @@ const Profiles: React.FC = () => {
     profileConfig,
     setProfileConfig,
     addProfileItem,
-    updateProfileItem,
     removeProfileItem,
     changeCurrentProfile,
     mutateProfileConfig
@@ -83,6 +82,7 @@ const Profiles: React.FC = () => {
       new Set(
         items
           .filter((item) => {
+            if (item.importMode) return item.importMode !== 'profile'
             if (!localConfig) return false
             const providers = parse(localConfig.draft.modules['proxy-providers'])
             const proxies = parse(localConfig.draft.modules.proxies)
@@ -354,7 +354,6 @@ const Profiles: React.FC = () => {
         <EditInfoModal
           mode="import"
           item={importItem as IProfileItem}
-          addProfileItem={addProfileItem}
           onImported={() => {
             setUrl('')
           }}
@@ -566,20 +565,15 @@ const Profiles: React.FC = () => {
             {sortedItems.map((item) => (
               <ProfileItem
                 key={item.id}
-                isCurrent={item.id === current && !localSourceIds.has(item.id)}
+                isCurrent={item.id === current}
                 isSource={localSourceIds.has(item.id)}
                 addProfileItem={addProfileItem}
                 removeProfileItem={removeProfileItem}
                 mutateProfileConfig={mutateProfileConfig}
-                updateProfileItem={updateProfileItem}
                 info={item}
-                onPress={
-                  localSourceIds.has(item.id)
-                    ? undefined
-                    : async () => {
-                        await changeCurrentProfile(item.id)
-                      }
-                }
+                onPress={async () => {
+                  await changeCurrentProfile(item.id)
+                }}
               />
             ))}
           </SortableContext>

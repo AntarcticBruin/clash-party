@@ -898,6 +898,7 @@
   "profiles.localNodes": "本機節點",
   "profiles.exportLocal": "匯出設定",
   "profiles.editInfo.source.title": "匯入方式",
+  "profiles.editInfo.source.profile": "完整設定",
   "profiles.editInfo.source.group": "代理集合",
   "profiles.editInfo.source.nodes": "獨立節點",
   "profiles.saveDraft": "儲存草稿",

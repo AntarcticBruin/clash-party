@@ -1,4 +1,4 @@
-import { Button } from '@heroui/react'
+import { Button, Spinner } from '@renderer/components/ui'
 import BasePage from '@renderer/components/base/base-page'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import {
@@ -39,8 +39,15 @@ const SubStore: React.FC = () => {
     })
   }, [t, useCustomSubStore])
 
-  if (!useCustomSubStore && !backendPort) return null
-  if (!frontendPort) return null
+  if ((!useCustomSubStore && !backendPort) || !frontendPort) {
+    return (
+      <BasePage title={t('substore.title')}>
+        <div className="app-card m-2 flex min-h-40 items-center justify-center bg-content1">
+          <Spinner size="sm" label={t('common.loading')} />
+        </div>
+      </BasePage>
+    )
+  }
   return (
     <>
       <BasePage
@@ -95,7 +102,8 @@ const SubStore: React.FC = () => {
         }
       >
         <iframe
-          className="w-full h-full"
+          title={t('substore.title')}
+          className="app-card m-2 w-[calc(100%-16px)] h-[calc(100%-16px)] bg-content1"
           allow="clipboard-write; clipboard-read"
           src={`http://127.0.0.1:${frontendPort}?api=${useCustomSubStore ? customSubStoreUrl : `http://127.0.0.1:${backendPort}`}`}
         />

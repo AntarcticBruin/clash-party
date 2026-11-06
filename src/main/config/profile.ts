@@ -252,13 +252,22 @@ export async function updateProfileItem(
     if (index === -1) {
       throw new Error('Profile not found')
     }
-    config.items[index] = { ...item, customHome }
+    config.items[index] = {
+      ...item,
+      customHome,
+      importMode: sourceOptions?.mode ?? item.importMode
+    }
     return config
   })
   if (sourceOptions) {
     try {
       const { configureLocalSource } = await import('../local/service')
-      await configureLocalSource(item.id, sourceOptions)
+      const sourceReference = await configureLocalSource(item.id, sourceOptions, previous)
+      await updateProfileConfig((config) => {
+        const saved = config.items.find((candidate) => candidate.id === item.id)
+        if (saved) saved.sourceReference = sourceReference
+        return config
+      })
     } catch (error) {
       if (previous) {
         await updateProfileItem(previous)
@@ -283,8 +292,16 @@ export async function addProfileItem(
     [...localState.draft.sources, ...localState.published.sources].some(
       (source) => source.profileId === profileId
     )
-  const newItem = await createProfile(item)
-  const sourceProfile = sourceOptions !== undefined || isLocalSource(newItem.id)
+  const newItem = await createProfile({
+    ...item,
+    importMode: sourceOptions?.mode ?? item.importMode ?? (item.id ? undefined : 'profile')
+  })
+  const sourceProfile =
+    sourceOptions !== undefined ||
+    (newItem.importMode !== 'profile' &&
+      (newItem.importMode === 'group' ||
+        newItem.importMode === 'nodes' ||
+        isLocalSource(newItem.id)))
   let shouldChangeCurrent = false
   let newProfileIsCurrentAfterUpdate = false
   await updateProfileConfig((config) => {
@@ -294,7 +311,7 @@ export async function addProfileItem(
     } else {
       config.items.push(newItem)
     }
-    if (!config.current && !sourceProfile) {
+    if ((!config.current || config.current === 'default') && !sourceProfile) {
       shouldChangeCurrent = true
       newProfileIsCurrentAfterUpdate = true
     }
@@ -304,7 +321,12 @@ export async function addProfileItem(
   if (sourceProfile) {
     const { configureLocalSource } = await import('../local/service')
     await addProfileUpdater(newItem)
-    await configureLocalSource(newItem.id, sourceOptions)
+    newItem.sourceReference = await configureLocalSource(newItem.id, sourceOptions)
+    await updateProfileConfig((config) => {
+      const saved = config.items.find((candidate) => candidate.id === newItem.id)
+      if (saved) saved.sourceReference = newItem.sourceReference
+      return config
+    })
     return newItem
   }
 
@@ -595,6 +617,8 @@ export async function createProfile(item: Partial<IProfileItem>): Promise<IProfi
     id,
     name: item.name || (item.type === 'remote' ? 'Remote File' : 'Local File'),
     type: item.type || 'local',
+    importMode: item.importMode,
+    sourceReference: item.sourceReference,
     url: item.url,
     home: item.home,
     extra: item.extra,

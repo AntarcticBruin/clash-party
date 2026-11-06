@@ -875,6 +875,7 @@
   "profiles.localNodes": "گره‌های محلی",
   "profiles.exportLocal": "خروجی پیکربندی",
   "profiles.editInfo.source.title": "روش وارد کردن",
+  "profiles.editInfo.source.profile": "پیکربندی کامل",
   "profiles.editInfo.source.group": "مجموعه پروکسی",
   "profiles.editInfo.source.nodes": "گره‌های جداگانه",
   "profiles.saveDraft": "ذخیره پیش‌نویس",

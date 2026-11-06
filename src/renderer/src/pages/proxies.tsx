@@ -11,7 +11,7 @@ import {
   DropdownTrigger,
   Switch,
   Spinner
-} from '@heroui/react'
+} from '@renderer/components/ui'
 import BasePage from '@renderer/components/base/base-page'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import { useActiveProfile } from '@renderer/hooks/use-active-profile'
@@ -586,6 +586,7 @@ const Proxies: React.FC = () => {
         >
           <Card
             as="div"
+            className="proxy-group-card"
             isPressable
             fullWidth
             onPress={() => {
@@ -600,7 +601,7 @@ const Proxies: React.FC = () => {
               })
             }}
           >
-            <CardBody className="w-full h-14">
+            <CardBody className="w-full h-[60px] px-3 py-2.5">
               <div className="flex justify-between h-full gap-3">
                 <div className="flex min-w-0 h-full text-ellipsis overflow-hidden whitespace-nowrap">
                   {groups[index].icon ? (
@@ -616,12 +617,12 @@ const Proxies: React.FC = () => {
                     />
                   ) : null}
                   <div className="flex min-w-0 flex-col h-full">
-                    <div className="text-ellipsis overflow-hidden whitespace-nowrap leading-tight text-md flex-5 flex items-center">
+                    <div className="text-ellipsis overflow-hidden whitespace-nowrap leading-tight text-base font-semibold flex-5 flex items-center">
                       <span title={groups[index].name} className="flag-emoji inline-block truncate">
                         {groups[index].name}
                       </span>
                     </div>
-                    <div className="text-ellipsis overflow-hidden whitespace-nowrap text-[10px] text-foreground-500 leading-tight flex-3 flex items-center">
+                    <div className="text-ellipsis overflow-hidden whitespace-nowrap text-[11px] text-foreground-500 leading-tight flex-3 flex items-center">
                       <span>{groups[index].type}</span>
                       <span
                         title={groups[index].now}

@@ -1,5 +1,5 @@
 import React from 'react'
-import { cn, Switch, SwitchProps } from '@heroui/react'
+import { cn, Switch, SwitchProps } from '@renderer/components/ui'
 import './border-switch.css'
 
 interface BorderSwitchProps extends Omit<SwitchProps, 'isSelected'> {

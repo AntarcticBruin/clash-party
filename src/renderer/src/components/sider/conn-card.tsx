@@ -1,5 +1,5 @@
-import { Button, Card, CardBody, CardFooter } from '@heroui/react'
-import { FaCircleArrowDown, FaCircleArrowUp } from 'react-icons/fa6'
+import { Button, Card, CardBody, CardFooter } from '@renderer/components/ui'
+import { LuArrowDown, LuArrowUp } from 'react-icons/lu'
 import { useLocation } from 'react-router-dom'
 import { calcTraffic } from '@renderer/utils/calc'
 import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react'
@@ -87,22 +87,22 @@ const ConnCard: React.FC<Props> = (props) => {
 
             const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom)
 
-            // 颜色处理
-            const isMatch = location.pathname.includes('/connections')
-            const baseColor = isMatch ? '6, 182, 212' : '161, 161, 170' // primary vs foreground 的近似 RGB 值
-
-            gradient.addColorStop(0, `rgba(${baseColor}, 0.8)`)
-            gradient.addColorStop(1, `rgba(${baseColor}, 0)`)
+            const primary = getComputedStyle(document.documentElement).getPropertyValue(
+              '--heroui-primary'
+            )
+            gradient.addColorStop(0, `hsl(${primary} / 0.18)`)
+            gradient.addColorStop(1, `hsl(${primary} / 0)`)
             return gradient
           },
-          borderColor: 'transparent',
+          borderColor: () =>
+            `hsl(${getComputedStyle(document.documentElement).getPropertyValue('--heroui-primary')} / 0.5)`,
           pointRadius: 0,
           pointHoverRadius: 0,
           tension: 0.4
         }
       ]
     }
-  }, [series, location.pathname])
+  }, [series])
 
   const chartOptions: ChartOptions<'line'> = {
     responsive: true,
@@ -117,12 +117,13 @@ const ConnCard: React.FC<Props> = (props) => {
         display: false
       },
       y: {
-        display: false
+        display: false,
+        min: 0
       }
     },
     elements: {
       line: {
-        borderWidth: 0
+        borderWidth: 1.5
       }
     },
     interaction: {
@@ -243,47 +244,37 @@ const ConnCard: React.FC<Props> = (props) => {
             ref={setNodeRef}
             {...attributes}
             {...listeners}
-            className={`${match ? 'bg-primary' : 'hover:bg-primary/30'} ${disableAnimations ? '' : `motion-reduce:transition-transform-background ${isDragging ? 'scale-[0.95] tap-highlight-transparent' : ''}`}`}
+            className={`sider-surface ${match ? 'is-active' : ''} ${disableAnimations ? '' : `motion-reduce:transition-transform-background ${isDragging ? 'scale-[0.95] tap-highlight-transparent' : ''}`}`}
           >
             {!hideConnectionCardWave && (
-              <div className="w-full h-full absolute top-0 left-0 pointer-events-none overflow-hidden rounded-[14px]">
+              <div className="w-full h-10 absolute bottom-0 left-0 pointer-events-none overflow-hidden rounded-b-xl">
                 <Line data={chartData} options={chartOptions} />
               </div>
             )}
-            <CardBody className="pb-1 pt-0 px-0">
-              <div className="flex justify-between">
-                <Button
-                  isIconOnly
-                  className="bg-transparent pointer-events-none"
-                  variant="flat"
-                  color="default"
-                >
-                  <IoLink
-                    color="default"
-                    className={`${match ? 'text-primary-foreground' : 'text-foreground'} text-[24px]`}
-                  />
-                </Button>
+            <CardBody className="traffic-card-body relative p-3 gap-3">
+              <div className="flex items-center gap-2">
+                <IoLink className="text-xl text-primary" />
+                <h3 className="sider-card-title text-sm font-semibold">
+                  {t('sider.cards.connections')}
+                </h3>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs tabular-nums">
                 <div
-                  className={`p-2 w-full ${match ? 'text-primary-foreground' : 'text-foreground'} `}
+                  className="flex items-center gap-1.5 min-w-0"
+                  title={`${calcTraffic(download)}/s`}
                 >
-                  <div className="flex justify-between">
-                    <div className="w-full text-right mr-2">{calcTraffic(upload)}/s</div>
-                    <FaCircleArrowUp className="h-[24px] leading-[24px]" />
-                  </div>
-                  <div className="flex justify-between">
-                    <div className="w-full text-right mr-2">{calcTraffic(download)}/s</div>
-                    <FaCircleArrowDown className="h-[24px] leading-[24px]" />
-                  </div>
+                  <LuArrowDown className="text-primary shrink-0 text-base" />
+                  <span className="truncate">{calcTraffic(download)}/s</span>
+                </div>
+                <div
+                  className="flex items-center gap-1.5 min-w-0 border-l border-divider pl-2"
+                  title={`${calcTraffic(upload)}/s`}
+                >
+                  <LuArrowUp className="text-primary shrink-0 text-base" />
+                  <span className="truncate">{calcTraffic(upload)}/s</span>
                 </div>
               </div>
             </CardBody>
-            <CardFooter className="pt-1">
-              <h3
-                className={`text-md font-bold sider-card-title ${match ? 'text-primary-foreground' : 'text-foreground'}`}
-              >
-                {t('sider.cards.connections')}
-              </h3>
-            </CardFooter>
           </Card>
         </>
       ) : (
@@ -292,7 +283,7 @@ const ConnCard: React.FC<Props> = (props) => {
           ref={setNodeRef}
           {...attributes}
           {...listeners}
-          className={`${match ? 'bg-primary' : 'hover:bg-primary/30'} ${disableAnimations ? '' : `motion-reduce:transition-transform-background ${isDragging ? 'scale-[0.95] tap-highlight-transparent' : ''}`}`}
+          className={`sider-surface ${match ? 'is-active' : ''} ${disableAnimations ? '' : `motion-reduce:transition-transform-background ${isDragging ? 'scale-[0.95] tap-highlight-transparent' : ''}`}`}
         >
           <CardBody className="pb-1 pt-0 px-0">
             <div className="flex justify-between">
@@ -304,15 +295,13 @@ const ConnCard: React.FC<Props> = (props) => {
               >
                 <IoLink
                   color="default"
-                  className={`${match ? 'text-primary-foreground' : 'text-foreground'} text-[24px] font-bold`}
+                  className={`${match ? 'text-primary' : 'text-foreground'} text-[24px] font-bold`}
                 />
               </Button>
             </div>
           </CardBody>
           <CardFooter className="pt-1">
-            <h3
-              className={`text-md font-bold ${match ? 'text-primary-foreground' : 'text-foreground'}`}
-            >
+            <h3 className={`text-md font-bold ${match ? 'text-primary' : 'text-foreground'}`}>
               {t('sider.cards.connections')}
             </h3>
           </CardFooter>

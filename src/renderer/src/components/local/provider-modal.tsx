@@ -9,7 +9,7 @@ import {
   Select,
   SelectItem,
   Textarea
-} from '@heroui/react'
+} from '@renderer/components/ui'
 import { toast } from '@renderer/components/base/toast'
 import { getLocalConfig, publishLocalConfig, saveLocalDraft } from '@renderer/utils/ipc'
 import { parse, stringify } from 'yaml'

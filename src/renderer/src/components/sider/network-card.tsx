@@ -1,4 +1,4 @@
-import { Button, Card, CardBody, CardFooter } from '@heroui/react'
+import { Button, Card, CardBody, CardFooter } from '@renderer/components/ui'
 import { IoGlobeOutline } from 'react-icons/io5'
 import { useLocation } from 'react-router-dom'
 import { useSortable } from '@dnd-kit/sortable'
@@ -59,7 +59,7 @@ const IPCard: React.FC<Props> = (props) => {
         ref={setNodeRef}
         {...attributes}
         {...listeners}
-        className={`${match ? 'bg-primary' : 'hover:bg-primary/30'} ${disableAnimations ? '' : `motion-reduce:transition-transform-background ${isDragging ? 'scale-[0.95] tap-highlight-transparent' : ''}`}`}
+        className={`sider-surface ${match ? 'is-active' : ''} ${disableAnimations ? '' : `motion-reduce:transition-transform-background ${isDragging ? 'scale-[0.95] tap-highlight-transparent' : ''}`}`}
       >
         <CardBody className="pb-1 pt-0 px-0">
           <div className="flex justify-between">
@@ -71,14 +71,14 @@ const IPCard: React.FC<Props> = (props) => {
             >
               <IoGlobeOutline
                 color="default"
-                className={`${match ? 'text-primary-foreground' : 'text-foreground'} text-[24px] font-bold`}
+                className={`${match ? 'text-primary' : 'text-foreground'} text-[24px] font-bold`}
               />
             </Button>
           </div>
         </CardBody>
         <CardFooter className="pt-1">
           <h3
-            className={`text-md font-bold text-ellipsis whitespace-nowrap overflow-hidden ${match ? 'text-primary-foreground' : 'text-foreground'}`}
+            className={`text-md font-bold text-ellipsis whitespace-nowrap overflow-hidden ${match ? 'text-primary' : 'text-foreground'}`}
           >
             {t('sider.cards.network')}
           </h3>

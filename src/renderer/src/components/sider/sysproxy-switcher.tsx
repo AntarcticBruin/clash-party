@@ -1,4 +1,3 @@
-import { Button, Card, CardBody, CardFooter } from '@heroui/react'
 import { toast } from '@renderer/components/base/toast'
 import BorderSwitch from '@renderer/components/base/border-switch'
 import { useLocation } from 'react-router-dom'
@@ -7,10 +6,9 @@ import { triggerSysProxy, updateTrayIconImmediate } from '@renderer/utils/ipc'
 import { useControledMihomoConfig } from '@renderer/hooks/use-controled-mihomo-config'
 import { AiOutlineGlobal } from 'react-icons/ai'
 import React from 'react'
-import { useSortable } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
 import { useTranslation } from 'react-i18next'
 import SiderItem from './sider-item'
+import FixedSwitchRow from './fixed-switch-row'
 
 interface Props {
   iconOnly?: boolean
@@ -24,20 +22,9 @@ const SysproxySwitcher: React.FC<Props> = (props) => {
   const match = location.pathname.includes('/sysproxy')
   const { appConfig, patchAppConfig } = useAppConfig()
   const { controledMihomoConfig } = useControledMihomoConfig()
-  const { sysProxy, sysproxyCardStatus = 'col-span-1', disableAnimations = false } = appConfig || {}
+  const { sysProxy } = appConfig || {}
   const { tun } = controledMihomoConfig || {}
   const { enable } = sysProxy || {}
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform: tf,
-    transition,
-    isDragging
-  } = useSortable({
-    id: 'sysproxy'
-  })
-  const transform = tf ? { x: tf.x, y: tf.y, scaleX: 1, scaleY: 1 } : null
   const onChange = async (enable: boolean): Promise<void> => {
     const previousState = !enable
     const tunEnabled = tun?.enable ?? false
@@ -62,7 +49,6 @@ const SysproxySwitcher: React.FC<Props> = (props) => {
   if (iconOnly) {
     return (
       <SiderItem
-        className={sysproxyCardStatus}
         title={t('sider.cards.systemProxy')}
         route="/sysproxy"
         icon={<AiOutlineGlobal className="text-[20px]" />}
@@ -79,50 +65,19 @@ const SysproxySwitcher: React.FC<Props> = (props) => {
   }
 
   return (
-    <div
-      style={{
-        position: 'relative',
-        transform: CSS.Transform.toString(transform),
-        transition,
-        zIndex: isDragging ? 'calc(infinity)' : undefined
-      }}
-      className={`${sysproxyCardStatus} sysproxy-card`}
+    <FixedSwitchRow
+      title={t('sider.cards.systemProxy')}
+      route="/sysproxy"
+      icon={<AiOutlineGlobal />}
+      active={match}
+      className="sysproxy-card"
     >
-      <Card
-        fullWidth
-        ref={setNodeRef}
-        {...attributes}
-        {...listeners}
-        className={`${match ? 'bg-primary' : 'hover:bg-primary/30'} ${disableAnimations ? '' : `motion-reduce:transition-transform-background ${isDragging ? 'scale-[0.95] tap-highlight-transparent' : ''}`}`}
-      >
-        <CardBody className="pb-1 pt-0 px-0">
-          <div className="flex justify-between">
-            <Button
-              isIconOnly
-              className="bg-transparent pointer-events-none"
-              variant="flat"
-              color="default"
-            >
-              <AiOutlineGlobal
-                className={`${match ? 'text-primary-foreground' : 'text-foreground'} text-[24px] font-bold`}
-              />
-            </Button>
-            <BorderSwitch
-              isShowBorder={match && enable}
-              isSelected={enable ?? false}
-              onValueChange={onChange}
-            />
-          </div>
-        </CardBody>
-        <CardFooter className="pt-1">
-          <h3
-            className={`text-md font-bold sider-card-title ${match ? 'text-primary-foreground' : 'text-foreground'}`}
-          >
-            {t('sider.cards.systemProxy')}
-          </h3>
-        </CardFooter>
-      </Card>
-    </div>
+      <BorderSwitch
+        aria-label={t('sider.cards.systemProxy')}
+        isSelected={enable ?? false}
+        onValueChange={onChange}
+      />
+    </FixedSwitchRow>
   )
 }
 

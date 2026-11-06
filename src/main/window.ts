@@ -9,6 +9,7 @@ import { hideDockIcon, showDockIcon } from './resolve/tray'
 import { dataDir } from './utils/dirs'
 import { mainWindowLogger } from './utils/logger'
 import { atomicWriteFileSync } from './utils/safeFile'
+import { createWindowHider } from './utils/window-hide'
 
 interface WindowState {
   width: number
@@ -104,6 +105,7 @@ export let mainWindow: BrowserWindow | null = null
 let quitTimeout: NodeJS.Timeout | null = null
 let createWindowPromise: Promise<void> | null = null
 let initialRendererReady = false
+const windowHiders = new WeakMap<BrowserWindow, ReturnType<typeof createWindowHider>>()
 
 // 窗口在 renderer 首屏内容（路由 + 侧边栏）就绪后再显示，避免 lazy chunk 未加载完就展示空白主区。
 function waitForInitialContent(window: BrowserWindow): Promise<void> {
@@ -219,7 +221,7 @@ async function createWindowInternal(): Promise<void> {
     mainWindow.maximize()
   }
 
-  setupWindowEvents(mainWindow)
+  setupWindowEvents(mainWindow, !useWindowFrame)
 
   if (is.dev) {
     mainWindow.webContents.openDevTools()
@@ -253,7 +255,9 @@ async function createWindowInternal(): Promise<void> {
   }
 }
 
-function setupWindowEvents(window: BrowserWindow): void {
+function setupWindowEvents(window: BrowserWindow, useTitleBarOverlay: boolean): void {
+  const hider = createWindowHider(window, process.platform === 'win32' && useTitleBarOverlay)
+  windowHiders.set(window, hider)
   // renderer 崩溃时外壳仍在（isDestroyed() 为 false）、did-fail-load 不触发，会白屏；销毁并按需重建
   window.webContents.on('render-process-gone', (_event, details) => {
     mainWindowLogger.error('Main window render process gone', details.reason).catch(() => {})
@@ -306,7 +310,7 @@ function setupWindowEvents(window: BrowserWindow): void {
     saveWindowState(window) // 关窗前兜底（#1954）
 
     event.preventDefault()
-    window.hide()
+    if (!(await hider.hide())) return
 
     const {
       autoQuitWithoutCore = false,
@@ -320,12 +324,14 @@ function setupWindowEvents(window: BrowserWindow): void {
       hideDockIcon()
     }
 
-    if (autoQuitWithoutCore) {
+    if (autoQuitWithoutCore && !window.isDestroyed() && !window.isVisible()) {
       scheduleQuitWithoutCore(autoQuitWithoutCoreDelay, autoQuitWithoutCoreMode)
     }
   })
 
   window.on('closed', () => {
+    hider.cancel()
+    windowHiders.delete(window)
     if (mainWindow === window) {
       mainWindow = null
     }
@@ -377,7 +383,7 @@ export function triggerMainWindow(force?: boolean): void {
   getAppConfig()
     .then(({ triggerMainWindowBehavior = 'toggle' }) => {
       if (force === true || triggerMainWindowBehavior === 'toggle') {
-        if (mainWindow?.isVisible()) {
+        if (mainWindow?.isVisible() && !windowHiders.get(mainWindow)?.isPending()) {
           closeMainWindow()
         } else {
           showMainWindow()
@@ -393,10 +399,16 @@ export function showMainWindow(): void {
   clearQuitTimeout()
 
   if (mainWindow && !mainWindow.isDestroyed()) {
+    windowHiders.get(mainWindow)?.cancel()
     clearQuitTimeout()
     // 兜底：renderer 已崩溃但 render-process-gone 尚未触发时，先 reload 再显示，避免白屏
     if (mainWindow.webContents.isCrashed()) {
       mainWindow.webContents.reload()
+    }
+    if (process.platform === 'win32' && !mainWindow.isVisible() && mainWindow.isClosable()) {
+      // 隐藏期间鼠标位置可能已改变，显示前同步原生关闭按钮状态。
+      mainWindow.setClosable(false)
+      mainWindow.setClosable(true)
     }
     mainWindow.show()
     mainWindow.focusOnWebView()

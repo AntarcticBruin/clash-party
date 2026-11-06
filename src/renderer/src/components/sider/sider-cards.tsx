@@ -27,7 +27,7 @@ import SubStoreCard from '@renderer/components/sider/substore-card'
 import NetworkCard from '@renderer/components/sider/network-card'
 import UsageCard from '@renderer/components/sider/usage-card'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
-import { mergeSiderOrder, SIDER_CARD_ROUTES } from '@renderer/utils/sider'
+import { mergeSiderOrder, SIDER_CARD_ROUTES, FIXED_SIDER_CARD_KEYS } from '@renderer/utils/sider'
 import { markInitialContentPartReady } from '@renderer/utils/startup'
 import { DEFAULT_SIDER_ORDER } from '../../../../shared/appConfig'
 
@@ -74,6 +74,7 @@ const SiderCards = (props: Props): React.JSX.Element => {
   const onDragEnd = async (event: DragEndEvent): Promise<void> => {
     const { active, over } = event
     const activeId = active.id as SiderCardKey
+    if (FIXED_SIDER_CARD_KEYS.includes(activeId)) return
     if (over && !lockSiderCards) {
       if (active.id !== over.id) {
         const overId = over.id as SiderCardKey
@@ -102,7 +103,8 @@ const SiderCards = (props: Props): React.JSX.Element => {
     return closestCorners(args)
   }
 
-  const cards = order.map((key) => {
+  const draggableOrder = order.filter((key) => !FIXED_SIDER_CARD_KEYS.includes(key))
+  const cards = draggableOrder.map((key) => {
     const Component = componentMap[key]
     return <Component key={key} iconOnly={iconOnly} expanded={expanded} />
   })
@@ -110,21 +112,29 @@ const SiderCards = (props: Props): React.JSX.Element => {
   if (iconOnly) {
     return (
       <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar">
-        <div className="min-h-full w-full flex flex-col gap-2">{cards}</div>
+        <div className="min-h-full w-full flex flex-col gap-2">
+          <SysproxySwitcher iconOnly expanded={expanded} />
+          <TunSwitcher iconOnly expanded={expanded} />
+          {cards}
+        </div>
       </div>
     )
   }
 
   return (
-    <div style={{ overflowX: 'clip' }}>
+    <div style={{ overflowX: 'clip' }} className="flex flex-col gap-2 p-2">
+      <div className="sider-switch-group">
+        <SysproxySwitcher />
+        <TunSwitcher />
+      </div>
       <DndContext
         sensors={sensors}
         collisionDetection={collisionDetection}
         onDragEnd={onDragEnd}
         modifiers={[lockTransform]}
       >
-        <div className="grid grid-cols-2 gap-2 m-2">
-          <SortableContext items={order}>{cards}</SortableContext>
+        <div className="sider-card-grid grid grid-cols-2 gap-2">
+          <SortableContext items={draggableOrder}>{cards}</SortableContext>
         </div>
       </DndContext>
     </div>

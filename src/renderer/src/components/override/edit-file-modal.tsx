@@ -1,4 +1,11 @@
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button } from '@heroui/react'
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Button
+} from '@renderer/components/ui'
 import { toast } from '@renderer/components/base/toast'
 import React, { useEffect, useState } from 'react'
 import { getOverride, mihomoHotReloadConfig, setOverride } from '@renderer/utils/ipc'

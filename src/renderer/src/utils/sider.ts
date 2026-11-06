@@ -1,6 +1,7 @@
 import { DEFAULT_SIDER_ORDER } from '../../../shared/appConfig'
 
 export const SIDER_CARD_KEYS: SiderCardKey[] = DEFAULT_SIDER_ORDER
+export const FIXED_SIDER_CARD_KEYS: SiderCardKey[] = ['sysproxy', 'tun']
 
 export const SIDER_CARD_ROUTES: Record<SiderCardKey, string> = {
   sysproxy: '/sysproxy',
@@ -21,11 +22,15 @@ export const SIDER_CARD_ROUTES: Record<SiderCardKey, string> = {
 }
 
 export function mergeSiderOrder(saved: string[] = []): SiderCardKey[] {
-  const valid = saved.filter((key): key is SiderCardKey =>
-    SIDER_CARD_KEYS.includes(key as SiderCardKey)
+  const valid = [...new Set(saved)].filter(
+    (key): key is SiderCardKey =>
+      SIDER_CARD_KEYS.includes(key as SiderCardKey) &&
+      !FIXED_SIDER_CARD_KEYS.includes(key as SiderCardKey)
   )
-  const missing = SIDER_CARD_KEYS.filter((key) => !valid.includes(key))
-  return [...valid, ...missing]
+  const missing = SIDER_CARD_KEYS.filter(
+    (key) => !FIXED_SIDER_CARD_KEYS.includes(key) && !valid.includes(key)
+  )
+  return [...FIXED_SIDER_CARD_KEYS, ...valid, ...missing]
 }
 
 export function getSiderCardRoute(card?: string): string {

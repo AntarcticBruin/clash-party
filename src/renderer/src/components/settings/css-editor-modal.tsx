@@ -1,4 +1,11 @@
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button } from '@heroui/react'
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Button
+} from '@renderer/components/ui'
 import { BaseEditor } from '@renderer/components/base/base-editor'
 import { readTheme } from '@renderer/utils/ipc'
 import React, { useEffect, useState } from 'react'

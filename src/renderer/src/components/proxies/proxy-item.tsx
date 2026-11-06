@@ -1,7 +1,8 @@
-import { Button, Card, CardBody } from '@heroui/react'
+import { Button, Card, CardBody } from '@renderer/components/ui'
 import { mihomoUnfixedProxy } from '@renderer/utils/ipc'
 import React, { useMemo, useState, useCallback } from 'react'
 import { FaMapPin } from 'react-icons/fa6'
+import { LuCheck } from 'react-icons/lu'
 import { useTranslation } from 'react-i18next'
 import { KeyedMutator } from 'swr'
 
@@ -69,108 +70,68 @@ const ProxyItemBase: React.FC<Props> = (props) => {
       onPress={() => onSelect(group.name, proxy.name)}
       isPressable
       fullWidth
-      shadow="sm"
-      className={`${
-        fixed
-          ? 'bg-secondary/30 border-r-2 border-r-secondary border-l-2 border-l-secondary'
-          : selected
-            ? 'bg-primary/30 border-r-2 border-r-primary border-l-2 border-l-primary'
-            : 'bg-content2'
-      }`}
+      shadow="none"
+      className="proxy-node-card"
+      data-selected={selected}
+      data-fixed={Boolean(fixed)}
+      aria-label={proxy.name}
+      aria-pressed={selected}
       radius="sm"
     >
-      <CardBody className="p-1">
-        {proxyDisplayMode === 'full' ? (
-          <div className="flex flex-col gap-1">
-            <div className="flex justify-between items-center pl-1">
-              <div className="text-ellipsis overflow-hidden whitespace-nowrap">
-                <div className="flag-emoji inline" title={proxy.name}>
-                  {proxy.name}
-                </div>
+      <CardBody className={proxyDisplayMode === 'full' ? 'px-2.5 py-2' : 'px-2.5 py-1.5'}>
+        <div className="flex items-center gap-1.5 min-w-0">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <div className="flag-emoji truncate text-sm font-medium leading-5" title={proxy.name}>
+                {proxy.name}
               </div>
-              {fixed && (
-                <Button
-                  isIconOnly
-                  title={t('proxies.unpin')}
-                  color="danger"
-                  onPress={async () => {
-                    await mihomoUnfixedProxy(group.name)
-                    mutateProxies()
-                  }}
-                  variant="light"
-                  className="h-5 p-0 text-sm"
-                >
-                  <FaMapPin className="text-md le" />
-                </Button>
+              {selected && !fixed && (
+                <LuCheck className="shrink-0 text-primary text-sm" aria-hidden="true" />
               )}
             </div>
-            <div className="flex justify-between items-center pl-1">
-              <div className="flex gap-1 items-center">
-                <div className="text-foreground-400 text-xs bg-default-100 px-1 rounded-md">
-                  {proxy.type}
-                </div>
+            {proxyDisplayMode === 'full' && (
+              <div className="proxy-protocols flex gap-1 items-center mt-1 overflow-hidden">
+                <span className="proxy-protocol">{proxy.type}</span>
                 {['tfo', 'udp', 'xudp', 'mptcp', 'smux'].map(
                   (protocol) =>
                     proxy[protocol as keyof IMihomoProxy] && (
-                      <div
-                        key={protocol}
-                        className="text-foreground-400 text-xs bg-default-100 px-1 rounded-md"
-                      >
+                      <span key={protocol} className="proxy-protocol uppercase">
                         {protocol}
-                      </div>
+                      </span>
                     )
                 )}
               </div>
-              <Button
-                isIconOnly
-                title={proxy.type}
-                isLoading={isLoading}
-                color={delayColor(delay)}
-                onPress={onDelay}
-                variant="light"
-                className="h-full text-sm ml-auto -mt-0.5 px-2 relative w-min whitespace-nowrap"
-              >
-                <div className="w-full h-full flex items-center justify-end">{delayText}</div>
-              </Button>
-            </div>
+            )}
           </div>
-        ) : (
-          <div className="flex justify-between items-center pl-1">
-            <div className="text-ellipsis overflow-hidden whitespace-nowrap">
-              <div className="flag-emoji inline" title={proxy.name}>
-                {proxy.name}
-              </div>
-            </div>
-            <div className="flex justify-end">
-              {fixed && (
-                <Button
-                  isIconOnly
-                  title={t('proxies.unpin')}
-                  color="danger"
-                  onPress={async () => {
-                    await mihomoUnfixedProxy(group.name)
-                    mutateProxies()
-                  }}
-                  variant="light"
-                  className="h-5 p-0 text-sm"
-                >
-                  <FaMapPin className="text-md le" />
-                </Button>
-              )}
-              <Button
-                isIconOnly
-                title={proxy.type}
-                isLoading={isLoading}
-                color={delayColor(delay)}
-                onPress={onDelay}
-                variant="light"
-                className="h-full text-sm px-2 relative w-min whitespace-nowrap"
-              >
-                <div className="w-full h-full flex items-center justify-end">{delayText}</div>
-              </Button>
-            </div>
-          </div>
-        )}
+          {fixed && (
+            <Button
+              isIconOnly
+              title={t('proxies.unpin')}
+              aria-label={t('proxies.unpin')}
+              color="secondary"
+              onPress={async () => {
+                await mihomoUnfixedProxy(group.name)
+                mutateProxies()
+              }}
+              variant="light"
+              className="h-6 w-6 min-w-6 shrink-0 p-0"
+            >
+              <FaMapPin className="text-xs" />
+            </Button>
+          )}
+          <Button
+            title={t('proxies.delay.test')}
+            aria-label={`${t('proxies.delay.test')} ${proxy.name}`}
+            isLoading={isLoading}
+            color={delayColor(delay)}
+            onPress={onDelay}
+            variant="light"
+            className="proxy-delay h-7 min-w-10 w-auto shrink-0 gap-1 px-1.5 text-[13px] font-medium tabular-nums"
+          >
+            {delayText}
+            {delay > 0 && <span className="text-[10px] font-normal opacity-80">ms</span>}
+          </Button>
+        </div>
       </CardBody>
     </Card>
   )

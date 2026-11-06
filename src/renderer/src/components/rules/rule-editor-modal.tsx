@@ -10,7 +10,7 @@ import {
   Radio,
   RadioGroup,
   Textarea
-} from '@heroui/react'
+} from '@renderer/components/ui'
 import React, { useState } from 'react'
 import { saveLocalRules } from '@renderer/utils/ipc'
 import { parseLocalRule, LOCAL_RULE_TYPES } from '../../../../shared/local-rules'

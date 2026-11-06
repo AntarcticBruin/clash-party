@@ -15,7 +15,7 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem
-} from '@heroui/react'
+} from '@renderer/components/ui'
 import { calcTraffic } from '@renderer/utils/calc'
 import ConnectionItem from '@renderer/components/connections/connection-item'
 import ConnectionTable, {

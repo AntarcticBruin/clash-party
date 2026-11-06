@@ -8,7 +8,7 @@ import {
   DropdownMenu,
   DropdownTrigger,
   Switch
-} from '@heroui/react'
+} from '@renderer/components/ui'
 import { toast } from '@renderer/components/base/toast'
 import { IoMdMore, IoMdRefresh } from 'react-icons/io'
 import dayjs from '@renderer/utils/dayjs'
@@ -195,7 +195,7 @@ const OverrideItem: React.FC<Props> = (props) => {
             <div className="flex justify-between h-8">
               <h3
                 title={info?.name}
-                className={`text-ellipsis whitespace-nowrap overflow-hidden text-md font-bold leading-8 text-foreground`}
+                className={`text-ellipsis whitespace-nowrap overflow-hidden text-sm font-semibold leading-8 text-foreground`}
               >
                 {info?.name}
               </h3>

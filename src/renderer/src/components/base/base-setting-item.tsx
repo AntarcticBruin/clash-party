@@ -1,4 +1,4 @@
-import { Divider } from '@heroui/react'
+import { Divider } from '@renderer/components/ui'
 import React from 'react'
 
 interface Props {
@@ -13,14 +13,14 @@ const SettingItem: React.FC<Props> = (props) => {
 
   return (
     <>
-      <div className="select-text h-8 w-full flex justify-between">
-        <div className="h-full flex items-center">
-          <h4 className="h-full text-md leading-8 whitespace-nowrap">{title}</h4>
-          <div>{actions}</div>
+      <div className="setting-item select-text min-h-10 w-full flex items-center justify-between gap-3">
+        <div className="setting-item-label min-w-0 flex items-center gap-1.5">
+          <h4 className="text-[14px] leading-5 font-medium">{title}</h4>
+          {actions && <div className="shrink-0">{actions}</div>}
         </div>
         {children}
       </div>
-      {divider && <Divider className="my-2" />}
+      {divider && <Divider className="setting-divider my-1" />}
     </>
   )
 }

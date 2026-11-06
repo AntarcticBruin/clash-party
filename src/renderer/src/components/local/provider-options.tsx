@@ -1,4 +1,4 @@
-import { Button, Divider, Input, Tab, Tabs, Textarea } from '@heroui/react'
+import { Button, Divider, Input, Tab, Tabs, Textarea } from '@renderer/components/ui'
 import { useState } from 'react'
 import { MdAdd, MdClose } from 'react-icons/md'
 import type { LocalObject } from '../../../../shared/local-config'
