@@ -10,6 +10,7 @@ import { dataDir } from './utils/dirs'
 import { mainWindowLogger } from './utils/logger'
 import { atomicWriteFileSync } from './utils/safeFile'
 import { createWindowHider } from './utils/window-hide'
+import { isHttpUrl } from './utils/url'
 
 interface WindowState {
   width: number
@@ -344,7 +345,9 @@ function setupWindowEvents(window: BrowserWindow, useTitleBarOverlay: boolean): 
   window.on('unmaximize', () => updateWindowState(window, false))
 
   window.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url)
+    if (isHttpUrl(details.url)) {
+      void shell.openExternal(details.url)
+    }
     return { action: 'deny' }
   })
 }
