@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createWindowHider } from './window-hide'
+import { createWindowHider, getCaptionRepaintDelay } from './window-hide'
 
 function createWindow(initialOpacity = 1) {
   let visible = true
@@ -10,6 +10,9 @@ function createWindow(initialOpacity = 1) {
     hide: vi.fn(() => {
       visible = false
     }),
+    show: () => {
+      visible = true
+    },
     isVisible: () => visible,
     isClosable: () => closable,
     isDestroyed: () => destroyed,
@@ -40,7 +43,7 @@ describe('closing a window to the tray', () => {
     expect(window.setOpacity.mock.invocationCallOrder[0]).toBeLessThan(
       window.setClosable.mock.invocationCallOrder[0]
     )
-    await vi.advanceTimersByTimeAsync(4)
+    await vi.advanceTimersByTimeAsync(33)
     expect(window.isVisible()).toBe(true)
     expect(window.getOpacity()).toBe(0)
     await vi.advanceTimersByTimeAsync(1)
@@ -72,7 +75,7 @@ describe('closing a window to the tray', () => {
     const hider = createWindowHider(window, true)
     const hidden = hider.hide()
     expect(await hider.hide()).toBe(false)
-    await vi.advanceTimersByTimeAsync(5)
+    await vi.advanceTimersByTimeAsync(34)
     expect(await hidden).toBe(true)
     expect(window.hide).toHaveBeenCalledTimes(1)
   })
@@ -112,7 +115,7 @@ describe('closing a window to the tray', () => {
     const window = createWindow(0.6)
     const hider = createWindowHider(window, true)
     const hidden = hider.hide()
-    await vi.advanceTimersByTimeAsync(5)
+    await vi.advanceTimersByTimeAsync(34)
     expect(await hidden).toBe(true)
     expect(window.getOpacity()).toBe(0.6)
   })
@@ -128,5 +131,61 @@ describe('closing a window to the tray', () => {
     expect(window.isClosable()).toBe(true)
     expect(window.hide).not.toHaveBeenCalled()
     expect(hider.isPending()).toBe(false)
+  })
+
+  it('keeps the native window paintable beyond the old 5ms deadline', async () => {
+    const window = createWindow()
+    const hider = createWindowHider(window, true, () => 60)
+    const hidden = hider.hide()
+    await vi.advanceTimersByTimeAsync(5)
+    expect(window.hide).not.toHaveBeenCalled()
+    expect(window.getOpacity()).toBe(0)
+    expect(window.isClosable()).toBe(false)
+    // Reopening must still cancel a hide during the longer repaint interval.
+    hider.cancel()
+    expect(await hidden).toBe(false)
+    await vi.advanceTimersByTimeAsync(100)
+    expect(window.hide).not.toHaveBeenCalled()
+    expect(window.getOpacity()).toBe(1)
+    expect(window.isClosable()).toBe(true)
+  })
+
+  it('uses the current display on each close after moving the window', async () => {
+    const window = createWindow()
+    let frequency = 75
+    const hider = createWindowHider(window, true, () => frequency)
+    const firstHide = hider.hide()
+    await vi.advanceTimersByTimeAsync(26)
+    expect(window.hide).not.toHaveBeenCalled()
+    await vi.advanceTimersByTimeAsync(1)
+    expect(await firstHide).toBe(true)
+
+    window.show()
+    frequency = 60
+    const secondHide = hider.hide()
+    await vi.advanceTimersByTimeAsync(27)
+    expect(window.hide).toHaveBeenCalledTimes(1)
+    await vi.advanceTimersByTimeAsync(7)
+    expect(await secondHide).toBe(true)
+    expect(window.hide).toHaveBeenCalledTimes(2)
+    expect(window.getOpacity()).toBe(1)
+  })
+})
+
+describe('native caption repaint budget', () => {
+  it.each([
+    [60, 34],
+    [75, 27],
+    [120, 17],
+    [144, 14],
+    [240, 9],
+    [0, 34],
+    [Number.NaN, 34],
+    [Number.POSITIVE_INFINITY, 34],
+    [-1, 34],
+    [1, 67],
+    [1000, 5]
+  ])('allows repaint time at %s Hz without an unbounded delay', (frequency, delay) => {
+    expect(getCaptionRepaintDelay(frequency)).toBe(delay)
   })
 })

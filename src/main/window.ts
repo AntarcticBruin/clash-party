@@ -257,7 +257,11 @@ async function createWindowInternal(): Promise<void> {
 }
 
 function setupWindowEvents(window: BrowserWindow, useTitleBarOverlay: boolean): void {
-  const hider = createWindowHider(window, process.platform === 'win32' && useTitleBarOverlay)
+  const hider = createWindowHider(
+    window,
+    process.platform === 'win32' && useTitleBarOverlay,
+    () => screen.getDisplayMatching(window.getBounds()).displayFrequency
+  )
   windowHiders.set(window, hider)
   // renderer 崩溃时外壳仍在（isDestroyed() 为 false）、did-fail-load 不触发，会白屏；销毁并按需重建
   window.webContents.on('render-process-gone', (_event, details) => {
