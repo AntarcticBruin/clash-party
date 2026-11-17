@@ -5,12 +5,10 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  DragEndEvent,
-  Modifier,
-  CollisionDetection
+  DragEndEvent
 } from '@dnd-kit/core'
 import { SortableContext } from '@dnd-kit/sortable'
-import { NavigateFunction, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import SysproxySwitcher from '@renderer/components/sider/sysproxy-switcher'
 import TunSwitcher from '@renderer/components/sider/tun-switcher'
 import ProfileCard from '@renderer/components/sider/profile-card'
@@ -60,8 +58,8 @@ const SiderCards = (props: Props): React.JSX.Element => {
   const siderOrder = appConfig?.siderOrder ?? DEFAULT_SIDER_ORDER
   const lockSiderCards = appConfig?.lockSiderCards ?? false
   const [order, setOrder] = useState<SiderCardKey[]>(mergeSiderOrder(siderOrder))
-  const sensors = useSensors(useSensor(PointerSensor))
-  const navigate: NavigateFunction = useNavigate()
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }))
+  const navigate = useNavigate()
 
   useLayoutEffect(() => {
     markInitialContentPartReady('sider')
@@ -73,40 +71,47 @@ const SiderCards = (props: Props): React.JSX.Element => {
 
   const onDragEnd = async (event: DragEndEvent): Promise<void> => {
     const { active, over } = event
+    if (lockSiderCards || !over || active.id === over.id) return
     const activeId = active.id as SiderCardKey
-    if (FIXED_SIDER_CARD_KEYS.includes(activeId)) return
-    if (over && !lockSiderCards) {
-      if (active.id !== over.id) {
-        const overId = over.id as SiderCardKey
-        const newOrder = order.slice()
-        const activeIndex = newOrder.indexOf(activeId)
-        const overIndex = newOrder.indexOf(overId)
-        if (activeIndex === -1 || overIndex === -1) return
-        newOrder.splice(activeIndex, 1)
-        newOrder.splice(overIndex, 0, activeId)
-        setOrder(newOrder)
-        await patchAppConfig({ siderOrder: newOrder })
-        return
-      }
-    }
-    const dest = SIDER_CARD_ROUTES[activeId]
-    if (dest) navigate(dest)
-  }
-
-  const lockTransform: Modifier = (args) => {
-    if (lockSiderCards) return { ...args.transform, x: 0, y: 0 }
-    return args.transform
-  }
-
-  const collisionDetection: CollisionDetection = (args) => {
-    if (lockSiderCards) return []
-    return closestCorners(args)
+    const from = order.indexOf(activeId)
+    const to = order.indexOf(over.id as SiderCardKey)
+    if (from < 0 || to < 0 || FIXED_SIDER_CARD_KEYS.includes(activeId)) return
+    const newOrder = order.slice()
+    newOrder.splice(from, 1)
+    newOrder.splice(to, 0, activeId)
+    setOrder(newOrder)
+    await patchAppConfig({ siderOrder: newOrder })
   }
 
   const draggableOrder = order.filter((key) => !FIXED_SIDER_CARD_KEYS.includes(key))
   const cards = draggableOrder.map((key) => {
     const Component = componentMap[key]
-    return <Component key={key} iconOnly={iconOnly} expanded={expanded} />
+    if (iconOnly) return <Component key={key} iconOnly expanded={expanded} />
+    return (
+      <div
+        key={key}
+        className="contents"
+        onClick={(event) => {
+          const target = event.target
+          if (!(target instanceof Element) || !event.currentTarget.contains(target)) return
+          const surface = target.closest('.sider-surface')
+          const control = target.closest(
+            'button, a, label, input, select, textarea, [role="switch"]'
+          )
+          if (surface && (!control || control === surface)) navigate(SIDER_CARD_ROUTES[key])
+        }}
+        onKeyDown={(event) => {
+          if (event.key !== 'Enter' && event.key !== ' ') return
+          const target = event.target
+          if (target instanceof HTMLElement && target.matches('.sider-surface')) {
+            event.preventDefault()
+            if (!event.repeat) target.click()
+          }
+        }}
+      >
+        <Component />
+      </div>
+    )
   })
 
   if (iconOnly) {
@@ -128,10 +133,9 @@ const SiderCards = (props: Props): React.JSX.Element => {
         <TunSwitcher />
       </div>
       <DndContext
-        sensors={sensors}
-        collisionDetection={collisionDetection}
+        sensors={lockSiderCards ? [] : sensors}
+        collisionDetection={closestCorners}
         onDragEnd={onDragEnd}
-        modifiers={[lockTransform]}
       >
         <div className="sider-card-grid grid grid-cols-2 gap-2">
           <SortableContext items={draggableOrder}>{cards}</SortableContext>
