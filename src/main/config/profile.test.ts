@@ -6,6 +6,7 @@ import { addProfileUpdater } from '../core/profileUpdater'
 import { getOverrideConfig, updateOverrideConfig } from './override'
 import {
   addProfileItem,
+  changeCurrentProfile,
   createProfile,
   getProfileImportInfo,
   getProfileConfig,
@@ -90,7 +91,6 @@ vi.mock('../utils/dirs', () => ({
     return join(testDir, 'profile.yaml')
   },
   profilePath: (id: string) => join(testDir, 'profiles', `${id}.yaml`),
-  localConfigPath: () => join(testDir, 'local-config.yaml'),
   overrideConfigPath: () => join(testDir, 'override.yaml'),
   overridePath: (id: string, ext: string) => join(testDir, 'overrides', `${id}.${ext}`)
 }))
@@ -189,61 +189,6 @@ const globalOverride = (id: string) =>
     global: true
   }) as const
 
-describe('importing complete profiles', () => {
-  it('preserves the selected mode and source identity when updating an existing subscription', async () => {
-    const original = await requireProfileItem('remote')
-    const sourceReference = { name: 'Original source', prefix: '[Original] ' }
-    await updateProfileItem({
-      ...original,
-      name: 'Renamed',
-      url: 'https://example.test/subscription',
-      importMode: 'profile',
-      sourceReference
-    })
-    expect(await getProfileItem('remote')).toMatchObject({
-      name: 'Renamed',
-      importMode: 'profile',
-      sourceReference
-    })
-    expect(readFileSync(join(testDir, 'profiles', 'remote.yaml'), 'utf8')).toBe(oldProfile)
-    expect(mocks.restartCore).not.toHaveBeenCalled()
-    const refreshed = await createProfile(await requireProfileItem('remote'))
-    expect(refreshed).toMatchObject({ importMode: 'profile', sourceReference })
-  })
-  it.each([undefined, 'default'])(
-    'activates the first import when current is %s',
-    async (current) => {
-      await updateProfileConfig(() => ({ current, items: [] }))
-      const imported = await addProfileItem({ type: 'local', name: 'Imported', file: newProfile })
-      expect((await getProfileConfig(true)).current).toBe(imported.id)
-      expect(mocks.restartCore).toHaveBeenCalledOnce()
-      expect(readFileSync(join(testDir, 'profiles', `${imported.id}.yaml`), 'utf8')).toBe(
-        newProfile
-      )
-    }
-  )
-
-  it('keeps the current profile when another complete profile is imported', async () => {
-    const imported = await addProfileItem({ type: 'local', name: 'Second', file: newProfile })
-    const config = await getProfileConfig(true)
-    expect(config.current).toBe('remote')
-    expect(config.items.some((item) => item.id === imported.id)).toBe(true)
-    expect(mocks.restartCore).not.toHaveBeenCalled()
-  })
-
-  it('preserves the imported profile and rolls back selection if first activation fails', async () => {
-    await updateProfileConfig(() => ({ current: 'default', items: [] }))
-    mocks.restartCore.mockRejectedValueOnce(new Error('Core activation failed'))
-    await expect(
-      addProfileItem({ type: 'local', name: 'Retryable', file: newProfile })
-    ).rejects.toThrow('Core activation failed')
-    const config = await getProfileConfig(true)
-    expect(config.current).toBe('default')
-    expect(config.items).toHaveLength(1)
-    expect(config.items[0].name).toBe('Retryable')
-  })
-})
-
 afterEach(() => {
   rmSync(testDir, { recursive: true, force: true })
 })
@@ -308,6 +253,89 @@ describe('remote profile candidate validation', () => {
     expect(mocks.checkProfileConfig).toHaveBeenCalledOnce()
     expect(readFileSync(join(testDir, 'profiles', 'remote.yaml'), 'utf8')).toBe(newProfile)
     expect(mocks.hotReload).toHaveBeenCalledOnce()
+  })
+})
+
+describe('full profile import', () => {
+  it.each(['remote', 'local'] as const)(
+    'keeps a complete %s profile selectable with its overrides',
+    async (type) => {
+      const content = `${newProfile}
+proxy-groups:
+  - name: Imported
+    type: select
+    proxies: [new]
+rules: ["MATCH,Imported"]
+`
+      if (type === 'remote') {
+        mocks.axiosGet.mockResolvedValueOnce({
+          status: 200,
+          data: content,
+          headers: { 'content-type': 'text/yaml' }
+        })
+      }
+      await updateOverrideConfig((config) => {
+        config.items.push({ ...globalOverride('custom'), global: false })
+        return config
+      })
+      const imported = await addProfileItem({
+        type,
+        name: 'Complete profile',
+        url: type === 'remote' ? 'https://example.test/full-profile' : undefined,
+        file: type === 'local' ? content : undefined,
+        override: ['custom']
+      })
+
+      expect(readFileSync(join(testDir, 'profiles', `${imported.id}.yaml`), 'utf8')).toBe(content)
+      expect(await getProfileItem(imported.id)).toMatchObject({ type, override: ['custom'] })
+      expect(addProfileUpdater).toHaveBeenCalledWith(imported)
+      expect((await getProfileConfig()).current).toBe('remote')
+      await changeCurrentProfile(imported.id)
+      expect((await getProfileConfig(true)).current).toBe(imported.id)
+      expect(mocks.restartCore).toHaveBeenCalledOnce()
+      expect(existsSync(join(testDir, 'profiles', 'local.yaml'))).toBe(false)
+    }
+  )
+
+  it('does not hijack an unbound legacy subscription whose URL also appears in a local profile', async () => {
+    const localYaml = [
+      'proxies: []',
+      'proxy-providers:',
+      '  Shared:',
+      '    type: http',
+      '    url: https://example.test/shared',
+      'proxy-groups:',
+      '  - name: PROXY',
+      '    type: select',
+      '    use: [Shared]',
+      'rules:',
+      '  - MATCH,PROXY',
+      ''
+    ].join('\n')
+    writeFileSync(
+      join(testDir, 'profile.yaml'),
+      [
+        'current: local',
+        'items:',
+        '  - id: local',
+        '    type: local',
+        '    name: Local',
+        '  - id: remote',
+        '    type: remote',
+        '    name: Remote',
+        '    url: https://example.test/shared',
+        ''
+      ].join('\n')
+    )
+    writeFileSync(join(testDir, 'profiles', 'local.yaml'), localYaml)
+    await getProfileConfig(true)
+
+    const refreshed = await addProfileItem(await requireProfileItem('remote'))
+
+    expect(refreshed.nodeSource).toBeUndefined()
+    expect((await requireProfileItem('remote')).nodeSource).toBeUndefined()
+    expect(readFileSync(join(testDir, 'profiles', 'local.yaml'), 'utf8')).toBe(localYaml)
+    expect(readFileSync(join(testDir, 'profiles', 'remote.yaml'), 'utf8')).toBe(newProfile)
   })
 })
 

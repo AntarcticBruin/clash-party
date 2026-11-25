@@ -28,7 +28,7 @@ import {
 } from '../utils/dirs'
 import { uploadRuntimeConfigIfChanged } from '../resolve/gistApi'
 import { startMonitor } from '../resolve/trafficMonitor'
-import { isLocalProfile } from '../../shared/local-config'
+import { switchPacSysProxyToManual } from '../sys/sysproxy'
 import { ensureRuntimeFiles, safeShowErrorBox } from '../utils/init'
 import { parseAgeSecretKeys } from '../utils/age'
 import i18next from '../../shared/i18n'
@@ -48,7 +48,7 @@ import {
   mihomoHotReloadConfig,
   getAxios
 } from './mihomoApi'
-import { generateProfile, getRuntimeConfig } from './factory'
+import { generateProfile } from './factory'
 import { syncControlDnsAfterApply, type DnsOverrideGuardResult } from './dnsOverrideGuard'
 import { syncSmartModelToTestDir } from './smartModel'
 import {
@@ -535,16 +535,16 @@ async function prepareCore(detached: boolean, skipStop = false): Promise<CoreCon
 
   const [appConfig, mihomoConfig] = await Promise.all([getAppConfig(), getControledMihomoConfig()])
 
-  let { diffWorkDir = false } = appConfig
   const {
     core = 'mihomo',
     autoSetDNS = true,
+    diffWorkDir = false,
     mihomoCpuPriority = 'PRIORITY_NORMAL',
     coreStartupMode = 'log',
     testProfileOnStart = true
   } = appConfig
 
-  let { 'log-level': logLevel = 'info' as LogLevel, tun } = mihomoConfig
+  const { 'log-level': logLevel = 'info' as LogLevel, tun } = mihomoConfig
 
   // 清理轻量模式遗留的后台核心
   await stopPidFileCore()
@@ -554,14 +554,7 @@ async function prepareCore(detached: boolean, skipStop = false): Promise<CoreCon
 
   // generateProfile 返回实际使用的 current
   const { profileId: current, dnsGuard } = await generateProfile()
-  const currentItem = await getProfileItem(current)
-  if (isLocalProfile(currentItem)) {
-    diffWorkDir = false
-    const localRuntime = await getRuntimeConfig()
-    logLevel = localRuntime['log-level'] || 'info'
-    tun = localRuntime.tun
-  }
-  const ageSecretKey = currentItem?.ageSecretKey || ''
+  const ageSecretKey = (await getProfileItem(current))?.ageSecretKey || ''
   if (testProfileOnStart) {
     await checkProfile(current, core, diffWorkDir, ageSecretKey)
   }
@@ -658,6 +651,21 @@ function spawnCoreProcess(config: CoreConfig): ChildProcess {
   return proc
 }
 
+// 内核就绪后的收尾。Gist 同步要经本地代理请求 GitHub 两次，慢的时候要好几秒，而界面刷新并不依赖它：
+// 日志级别恢复后就通知界面，不再等同步完成，否则切换订阅后代理组会一直停在旧订阅上。
+export async function completeCoreStartup(logLevel: LogLevel): Promise<void> {
+  const gistSync = uploadRuntimeConfigIfChanged().catch((error) => {
+    managerLogger.warn('Failed to sync runtime config to Gist', error)
+  })
+  try {
+    await patchMihomoConfig({ 'log-level': logLevel })
+  } finally {
+    mainWindow?.webContents.send('groupsUpdated')
+    mainWindow?.webContents.send('rulesUpdated')
+  }
+  await gistSync
+}
+
 // 设置核心进程事件监听
 function setupCoreListeners(
   proc: ChildProcess,
@@ -703,20 +711,6 @@ function setupCoreListeners(
       startMihomoLogs(),
       startMihomoMemory()
     ])
-  }
-
-  const completeCoreStartup = async (): Promise<void> => {
-    try {
-      await uploadRuntimeConfigIfChanged()
-    } catch (error) {
-      managerLogger.warn('Failed to sync runtime config to Gist', error)
-    }
-    try {
-      await patchMihomoConfig({ 'log-level': logLevel })
-    } finally {
-      mainWindow?.webContents.send('groupsUpdated')
-      mainWindow?.webContents.send('rulesUpdated')
-    }
   }
 
   proc.once('error', (error) => {
@@ -842,7 +836,7 @@ function setupCoreListeners(
                 .toLowerCase()
                 .includes('start initial compatible provider default')
             ) {
-              completeCoreStartup()
+              completeCoreStartup(logLevel)
                 .then(() => innerResolve())
                 .catch((error) => {
                   managerLogger.warn('Failed to complete core startup', error)
@@ -867,7 +861,7 @@ function setupCoreListeners(
       .then(async () => {
         managerLogger.info('Core post-up hook triggered')
         await startMihomoApiStreams()
-        resolveStartup([completeCoreStartup()])
+        resolveStartup([completeCoreStartup(logLevel)])
       })
       .catch(rejectStartup)
   }
@@ -1155,7 +1149,16 @@ export async function quitWithoutCore(): Promise<void> {
   managerLogger.info(`Starting lightweight mode on platform: ${process.platform}`)
   if (!(await keepCoreAlive())) return
   await startMonitor(true)
-  managerLogger.info('Exiting main process, core will continue running in background')
+  const switchedToManual = switchPacSysProxyToManual().catch(async (error) => {
+    await managerLogger.warn('Failed to switch PAC system proxy to manual', error)
+    return false
+  })
+  // 排在前面的系统代理操作可能卡在 macOS helper 上，不让它无限期拖住退出
+  if (await Promise.race([switchedToManual, delay(10000, false)])) {
+    await managerLogger.info('PAC server stops with the main process, system proxy set to manual')
+  }
+  // 日志是异步追加写入的，app.exit() 会立即结束进程，不等写完最后几行就会丢失
+  await managerLogger.info('Exiting main process, core will continue running in background')
   app.exit()
 }
 

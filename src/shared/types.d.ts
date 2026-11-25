@@ -284,6 +284,8 @@ interface ISmartModelStatus {
 
 interface IAppConfig {
   mcpEnabled?: boolean
+  mcpAllowWrites?: boolean
+  mcpAutoApprove?: boolean
   mcpPort?: number
   mcpToken?: string
   core: 'mihomo' | 'mihomo-alpha' | 'mihomo-smart' | 'mihomo-specific'
@@ -603,8 +605,7 @@ interface IProfileItem {
   id: string
   type: 'remote' | 'local'
   name: string
-  importMode?: 'profile' | 'group' | 'nodes'
-  sourceReference?: { name: string; prefix: string }
+  nodeSource?: false | import('./local-config').LocalSourceBinding
   url?: string // remote
   file?: string // local
   interval?: number | string

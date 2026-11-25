@@ -20,7 +20,7 @@ import {
   Tooltip
 } from '@renderer/components/ui'
 import { toast } from '@renderer/components/base/toast'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useOverrideConfig } from '@renderer/hooks/use-override-config'
 import { useProfileConfig } from '@renderer/hooks/use-profile-config'
 import { useSWRConfig } from 'swr'
@@ -41,30 +41,30 @@ import { useTranslation } from 'react-i18next'
 import { isValidCron } from 'cron-validator'
 import { parse } from 'yaml'
 import SettingItem from '../base/base-setting-item'
-import type { LocalObject, LocalSubscriptionOptions } from '../../../../shared/local-config'
+import type {
+  LocalObject,
+  LocalSource,
+  LocalSubscriptionOptions
+} from '../../../../shared/local-config'
 import ProviderOptions from '../local/provider-options'
 import type { HeaderRow } from '../local/provider-fields'
 
 interface Props {
   item: IProfileItem
+  source?: LocalSource
   mode?: 'edit' | 'import'
   onImported?: (item: IProfileItem) => void
   onClose: () => void
 }
 const EditInfoModal: React.FC<Props> = (props) => {
-  const { item, mode = 'edit', onImported, onClose } = props
-  const { profileConfig, mutateProfileConfig } = useProfileConfig()
+  const { item, source, mode = 'edit', onImported, onClose } = props
+  const { mutateProfileConfig } = useProfileConfig()
   const { mutate } = useSWRConfig()
   const [localOptions, setLocalOptions] = useState<LocalSubscriptionOptions>({
     mode: 'group'
   })
+  const [importTarget, setImportTarget] = useState<'profile' | 'source'>('profile')
   const [localGroupNames, setLocalGroupNames] = useState<string[]>([])
-  const [sourceGroupsLoaded, setSourceGroupsLoaded] = useState(false)
-  const [isSourceProfile, setIsSourceProfile] = useState(false)
-  const [profileMode, setProfileMode] = useState<NonNullable<IProfileItem['importMode']>>(
-    item.importMode || 'profile'
-  )
-  const initialSourceOptions = useRef<string | null>(null)
   const [providerHeaders, setProviderHeaders] = useState<HeaderRow[]>([])
   const [outbounds, setOutbounds] = useState<string[]>(['DIRECT'])
   const [optionsLoaded, setOptionsLoaded] = useState(false)
@@ -75,11 +75,11 @@ const EditInfoModal: React.FC<Props> = (props) => {
     ...item
   })
   const isImportMode = mode === 'import'
-  const asSource = profileMode !== 'profile'
-  const inputWidth =
-    asSource || isImportMode
-      ? 'w-[65%] min-w-0'
-      : 'w-[400px] md:w-[400px] lg:w-[600px] xl:w-[800px]'
+  const asSource = isImportMode ? importTarget === 'source' : Boolean(source)
+  const compact = isImportMode || asSource
+  const inputWidth = compact
+    ? 'w-[65%] min-w-0'
+    : 'w-[400px] md:w-[400px] lg:w-[600px] xl:w-[800px]'
   const { t } = useTranslation()
   useEffect(() => {
     const url = values.url?.trim()
@@ -136,75 +136,12 @@ const EditInfoModal: React.FC<Props> = (props) => {
     values.updateTimeout
   ])
   useEffect(() => {
-    if (isImportMode) return
+    if (isImportMode || !source || optionsLoaded) return
     let active = true
-    getLocalConfig()
+    getLocalConfig(source.localProfileId)
       .then((state) => {
         if (!active) return
-        const providers = parse(state.draft.modules['proxy-providers'])
-        const providerEntries: [string, Record<string, unknown>][] =
-          providers && typeof providers === 'object' && !Array.isArray(providers)
-            ? Object.entries(providers).filter(
-                (entry): entry is [string, Record<string, unknown>] =>
-                  entry[1] !== null && typeof entry[1] === 'object' && !Array.isArray(entry[1])
-              )
-            : []
-        const providerEntry = providerEntries.find(
-          ([name, value]) =>
-            name === item.sourceReference?.name ||
-            name === item.name ||
-            (value && typeof value === 'object' && value.url === item.url && Boolean(item.url))
-        )
-        const prefix = item.sourceReference?.prefix ?? `[${item.name}] `
-        const localProxies = parse(state.draft.modules.proxies)
-        const nodeSource = Array.isArray(localProxies)
-          ? localProxies.filter(
-              (node): node is Record<string, unknown> =>
-                node !== null &&
-                typeof node === 'object' &&
-                !Array.isArray(node) &&
-                typeof node.name === 'string' &&
-                node.name.startsWith(prefix)
-            )
-          : []
-        const linkedSource = state.draft.sources.find((source) => source.profileId === item.id)
-        const source =
-          linkedSource ||
-          (providerEntry
-            ? {
-                name: providerEntry[0],
-                mode:
-                  providerEntry[1] && typeof providerEntry[1] === 'object'
-                    ? providerEntry[1].type === 'inline'
-                      ? 'inline'
-                      : 'http'
-                    : 'http',
-                prefix:
-                  providerEntry[1] && typeof providerEntry[1] === 'object'
-                    ? String(
-                        (providerEntry[1].override as Record<string, unknown> | undefined)?.[
-                          'additional-prefix'
-                        ] || `[${providerEntry[0]}] `
-                      )
-                    : `[${providerEntry[0]}] `,
-                proxies: []
-              }
-            : nodeSource.length
-              ? {
-                  name: item.sourceReference?.name || item.name,
-                  mode: 'extract',
-                  prefix,
-                  proxies: nodeSource.map((node) => ({
-                    ...node,
-                    name: String(node.name).slice(prefix.length)
-                  }))
-                }
-              : undefined)
-        setIsSourceProfile(Boolean(source))
-        if (!item.importMode) {
-          setProfileMode(source ? (source.mode === 'extract' ? 'nodes' : 'group') : 'profile')
-        }
-        const groups = parse(state.draft.modules['proxy-groups'])
+        const groups = parse(state.modules['proxy-groups'])
         const names = Array.isArray(groups)
           ? groups
               .filter(
@@ -215,57 +152,38 @@ const EditInfoModal: React.FC<Props> = (props) => {
               .filter((name): name is string => typeof name === 'string' && name.trim().length > 0)
           : []
         setLocalGroupNames(names)
-        if (source) {
-          const entries =
-            source.mode === 'extract'
-              ? source.proxies.map((node) => `${source.prefix}${node.name}`)
-              : [source.name]
-          const selected = Array.isArray(groups)
-            ? groups
-                .filter(
-                  (group): group is Record<string, unknown> =>
-                    group !== null && typeof group === 'object' && !Array.isArray(group)
-                )
-                .filter((group) => {
-                  const use = Array.isArray(group.use) ? group.use : []
-                  const proxies = Array.isArray(group.proxies) ? group.proxies : []
-                  return (
-                    use.includes(source.name) || entries.some((entry) => proxies.includes(entry))
-                  )
-                })
-                .map((group) => group.name)
-                .filter((name): name is string => typeof name === 'string')
-            : []
-          setLocalOptions((current) => ({
-            ...current,
-            mode: source.mode === 'extract' ? 'nodes' : 'group',
-            prefix: source.prefix,
-            providerName: source.name,
-            targetGroups: selected
-          }))
-          setSourceGroupsLoaded(true)
-        } else {
-          setSourceGroupsLoaded(false)
-        }
-        const providerOptions = structuredClone(
-          linkedSource?.providerOptions || providerEntry?.[1] || {}
-        )
+        const entries =
+          source.mode === 'extract'
+            ? source.proxies.map((node) => `${source.prefix}${node.name}`)
+            : [source.name]
+        const selected = Array.isArray(groups)
+          ? groups
+              .filter(
+                (group): group is Record<string, unknown> =>
+                  group !== null && typeof group === 'object' && !Array.isArray(group)
+              )
+              .filter((group) => {
+                const use = Array.isArray(group.use) ? group.use : []
+                const proxies = Array.isArray(group.proxies) ? group.proxies : []
+                return use.includes(source.name) || entries.some((entry) => proxies.includes(entry))
+              })
+              .map((group) => group.name)
+              .filter((name): name is string => typeof name === 'string')
+          : []
+        const providerOptions = structuredClone(source.providerOptions || {})
         const header = (providerOptions.header || {}) as Record<string, string[]>
         const customHeaders: HeaderRow[] = []
-        for (const [name, headerValue] of Object.entries(header)) {
-          const values = Array.isArray(headerValue) ? headerValue : [String(headerValue)]
+        for (const [name, values] of Object.entries(header)) {
           const lower = name.toLowerCase()
           if (lower === 'user-agent' || lower === 'authorization') {
-            if (item.importMode !== 'profile') {
-              setValues((current) => ({
-                ...current,
-                [lower === 'user-agent' ? 'userAgent' : 'authToken']: values.join(' ')
-              }))
-            }
+            setValues((current) => ({
+              ...current,
+              [lower === 'user-agent' ? 'userAgent' : 'authToken']: values.join(' ')
+            }))
           } else customHeaders.push({ name, values: values.join('\n') })
         }
         delete providerOptions.header
-        if (item.importMode !== 'profile' && typeof providerOptions['age-secret-key'] === 'string')
+        if (typeof providerOptions['age-secret-key'] === 'string')
           setValues((current) => ({
             ...current,
             ageSecretKey: providerOptions['age-secret-key'] as string
@@ -274,9 +192,10 @@ const EditInfoModal: React.FC<Props> = (props) => {
         setProviderHeaders(customHeaders)
         setLocalOptions((current) => ({
           ...current,
-          mode: source?.mode === 'extract' ? 'nodes' : 'group',
-          prefix: source?.prefix,
-          providerName: source?.name,
+          mode: source.mode === 'extract' ? 'nodes' : 'group',
+          prefix: source.prefix,
+          providerName: source.name,
+          targetGroups: selected,
           providerOptions
         }))
         setOptionsLoaded(true)
@@ -287,16 +206,11 @@ const EditInfoModal: React.FC<Props> = (props) => {
     return () => {
       active = false
     }
-  }, [isImportMode, item.id, item.name, item.url, item.importMode, item.sourceReference])
-  useEffect(() => {
-    if (optionsLoaded && initialSourceOptions.current === null) {
-      initialSourceOptions.current = JSON.stringify({ profileMode, localOptions, providerHeaders })
-    }
-  }, [optionsLoaded, profileMode, localOptions, providerHeaders])
+  }, [isImportMode, source, optionsLoaded])
   useEffect(() => {
     if (!asSource) return
     let active = true
-    previewLocalConfig()
+    previewLocalConfig(source?.localProfileId)
       .then((preview) => {
         if (active) setOutbounds(preview.references.outbounds)
       })
@@ -306,7 +220,7 @@ const EditInfoModal: React.FC<Props> = (props) => {
     return () => {
       active = false
     }
-  }, [asSource])
+  }, [asSource, source?.localProfileId])
   const customHome = values.customHome?.trim() || ''
   const validHome = !customHome || (/^https?:\/\//i.test(customHome) && URL.canParse(customHome))
   const canSave =
@@ -318,28 +232,17 @@ const EditInfoModal: React.FC<Props> = (props) => {
   const onSave = async (): Promise<void> => {
     setSaving(true)
     try {
-      const metadata = {
-        ...values,
-        importMode: profileMode,
-        ...(asSource
-          ? {
-              sourceReference: {
-                name: localOptions.providerName || item.sourceReference?.name || item.name,
-                prefix: localOptions.prefix ?? `[${item.name}] `
-              }
-            }
-          : {})
-      }
       const updatedItem = asSource
-        ? metadata
+        ? values
         : {
-            ...metadata,
+            ...values,
             override: values.override?.filter(
               (i) =>
                 overrideItems.find((t) => t.id === i) &&
                 !overrideItems.find((t) => t.id === i)?.global
             )
           }
+      let options: LocalSubscriptionOptions | undefined
       if (asSource) {
         const providerOptions: LocalObject = { ...localOptions.providerOptions }
         const header: Record<string, string[]> = {}
@@ -354,48 +257,27 @@ const EditInfoModal: React.FC<Props> = (props) => {
         }
         if (Object.keys(header).length) providerOptions.header = header
         else delete providerOptions.header
-        const options = {
+        options = {
           ...localOptions,
           providerOptions,
-          ...(sourceGroupsLoaded && !isImportMode
-            ? { targetGroups: localOptions.targetGroups || [] }
-            : {})
-        }
-        if (isImportMode) {
-          const imported = await importProfile(updatedItem, options)
-          onImported?.(imported)
-        } else {
-          const sourceChanged =
-            initialSourceOptions.current !==
-              JSON.stringify({ profileMode, localOptions, providerHeaders }) ||
-            (
-              ['url', 'userAgent', 'authToken', 'ageSecretKey', 'interval', 'autoUpdate'] as const
-            ).some((key) => values[key] !== item[key])
-          await saveProfile(updatedItem, sourceChanged ? options : undefined)
-          await addProfileUpdater(updatedItem)
-        }
-        await mutate('getLocalConfig')
-      } else if (isImportMode) {
-        const imported = await importProfile(updatedItem)
-        onImported?.(imported)
-      } else {
-        await saveProfile(updatedItem)
-        await addProfileUpdater(updatedItem)
-        if (isSourceProfile) await mutate('getLocalConfig')
-        if (
-          profileConfig?.current === item.id &&
-          (updatedItem.ageSecretKey !== item.ageSecretKey ||
-            JSON.stringify(updatedItem.override || []) !== JSON.stringify(item.override || []))
-        ) {
-          await mihomoHotReloadConfig()
+          ...(!isImportMode ? { targetGroups: localOptions.targetGroups || [] } : {})
         }
       }
-      window.electron.ipcRenderer.send('updateTrayMenu')
+      if (isImportMode) {
+        const imported = await importProfile(updatedItem, options)
+        onImported?.(imported)
+      } else {
+        await saveProfile(updatedItem, options)
+        await addProfileUpdater(updatedItem)
+        if (!asSource) await mihomoHotReloadConfig()
+      }
+      if (asSource) await mutate('getLocalConfig')
       onClose()
     } catch (e) {
       toast.error(String(e))
     } finally {
       mutateProfileConfig()
+      window.electron.ipcRenderer.send('updateTrayMenu')
       setSaving(false)
     }
   }
@@ -459,27 +341,37 @@ const EditInfoModal: React.FC<Props> = (props) => {
           onValueChange={(customHome) => setValues({ ...values, customHome })}
         />
       </SettingItem>
-      {
+      {(isImportMode || asSource) && (
         <SettingItem title={t('profiles.editInfo.source.title')}>
           <Tabs
             size="sm"
             aria-label={t('profiles.editInfo.source.title')}
-            selectedKey={profileMode}
+            selectedKey={asSource ? localOptions.mode : 'profile'}
             onSelectionChange={(key) => {
-              setProfileMode(key as NonNullable<IProfileItem['importMode']>)
-              if (key === 'profile') return
-              setLocalOptions({
-                ...localOptions,
-                mode: key as LocalSubscriptionOptions['mode']
-              })
+              setImportTarget(key === 'profile' ? 'profile' : 'source')
+              if (key !== 'profile') {
+                setLocalOptions({
+                  ...localOptions,
+                  mode: key as LocalSubscriptionOptions['mode']
+                })
+              }
             }}
           >
-            <Tab key="profile" title={t('profiles.editInfo.source.profile')} />
+            {isImportMode && (
+              <Tab
+                key="profile"
+                title={t(
+                  values.type === 'remote'
+                    ? 'profiles.editInfo.source.remote'
+                    : 'profiles.editInfo.source.local'
+                )}
+              />
+            )}
             <Tab key="group" title={t('profiles.editInfo.source.group')} />
             <Tab key="nodes" title={t('profiles.editInfo.source.nodes')} />
           </Tabs>
         </SettingItem>
-      }
+      )}
       {asSource && (
         <>
           {localOptions.mode === 'group' && (
@@ -493,7 +385,7 @@ const EditInfoModal: React.FC<Props> = (props) => {
               />
             </SettingItem>
           )}
-          {!isImportMode && sourceGroupsLoaded && (
+          {!isImportMode && optionsLoaded && (
             <SettingItem title="关联代理组">
               <div className="flex flex-wrap gap-x-4 gap-y-1">
                 {localGroupNames.length ? (
@@ -758,10 +650,9 @@ const EditInfoModal: React.FC<Props> = (props) => {
       size="5xl"
       classNames={{
         backdrop: 'top-[48px]',
-        base:
-          asSource || isImportMode
-            ? 'w-[min(720px,calc(100vw-32px))] max-h-[min(680px,calc(100dvh-96px))]'
-            : 'w-[600px] md:w-[600px] lg:w-[800px] xl:w-[1024px]'
+        base: compact
+          ? 'w-[min(720px,calc(100vw-32px))] max-h-[min(680px,calc(100dvh-96px))]'
+          : 'w-[600px] md:w-[600px] lg:w-[800px] xl:w-[1024px]'
       }}
       hideCloseButton
       isOpen={true}
@@ -772,7 +663,7 @@ const EditInfoModal: React.FC<Props> = (props) => {
         <ModalHeader className="flex app-drag">
           {isImportMode ? t('profiles.import') : t('profiles.editInfo.title')}
         </ModalHeader>
-        <ModalBody className={asSource ? 'pt-0' : undefined}>
+        <ModalBody className={compact ? 'pt-0' : undefined}>
           {asSource ? (
             <ProviderOptions
               values={localOptions.providerOptions || {}}
